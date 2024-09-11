@@ -1,6 +1,7 @@
 ﻿const User = require('../models/userModel');
 const {sendEmail} = require("../utils/emailService");
 const {jwt} = require('jsonwebtoken');
+const {generateToken} = require("../utils/authUtils");
 
 const createUser = async (req, res) => {
     try {
@@ -30,30 +31,48 @@ const verifyUser = async (req, res) => {
     try {
         const { email, token } = req.body;
         const user = await User.findOne({ email: email, validationToken: token });
-
         if (!user) {
             return res.status(400).json({ message: 'Code de validation invalide ou utilisateur inexistant.' });
         }
 
         user.status = 'verified';
         user.validationToken = undefined;
-        await user.save();
 
         const authToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
         res.status(200).json({
             message: 'Compte vérifié avec succès !',
             token: authToken
         });
+
+        await user.save();
     } catch (error) {
         res.status(500).json({ message: 'Erreur lors de la vérification du compte', error });
     }
 };
 
 const loginUser = async (req, res) => {
-    
-}
+    try {
+        const { email, password } = req.body;
+        
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "Utilisateur non trouvé" });
+        }
 
+        const isPasswordCorrect = user.password === password; // Remplacez par bcrypt.compare(password, user.password)
+        if (!isPasswordCorrect) {
+            return res.status(401).json({ message: "Mot de passe incorrect" });
+        }
+
+        const token = generateToken(user._id);
+
+        res.cookie('token', token, { httpOnly: true, secure: true });
+        res.status(200).json({ message: 'Connexion réussie !', token });
+    } 
+    catch (error) {
+        res.status(500).json({ message: "Erreur lors de la connexion", error });
+    }
+};
 const getUsers = async (req, res) => {
     try {
         const users = await User.find();
@@ -104,4 +123,4 @@ const deleteUser = async (req, res) => {
     }
 };
 
-module.exports = { createUser, verifyUser, getUsers, getUserById, updateUser, deleteUser };
+module.exports = { createUser, verifyUser, loginUser, getUsers, getUserById, updateUser, deleteUser };
