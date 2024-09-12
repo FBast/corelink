@@ -1,6 +1,6 @@
 ﻿const User = require('../models/userModel');
+const jwt = require('jsonwebtoken');
 const {sendEmail} = require("../utils/emailService");
-const {jwt} = require('jsonwebtoken');
 const {generateToken} = require("../utils/authUtils");
 
 const createUser = async (req, res) => {
@@ -35,7 +35,7 @@ const verifyUser = async (req, res) => {
             return res.status(400).json({ message: 'Code de validation invalide ou utilisateur inexistant.' });
         }
 
-        user.status = 'verified';
+        user.status = 'pending_infos';
         user.validationToken = undefined;
 
         const authToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -45,7 +45,8 @@ const verifyUser = async (req, res) => {
         });
 
         await user.save();
-    } catch (error) {
+    }
+    catch (error) {
         res.status(500).json({ message: 'Erreur lors de la vérification du compte', error });
     }
 };
@@ -53,26 +54,60 @@ const verifyUser = async (req, res) => {
 const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
-        
+
+        // Trouver l'utilisateur par email
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({ message: "Utilisateur non trouvé" });
         }
 
-        const isPasswordCorrect = user.password === password; // Remplacez par bcrypt.compare(password, user.password)
+        // Vérification du mot de passe (assurez-vous de le faire avec bcrypt dans une vraie application)
+        const isPasswordCorrect = user.password === password; // Remplacer par bcrypt.compare(password, user.password)
         if (!isPasswordCorrect) {
             return res.status(401).json({ message: "Mot de passe incorrect" });
         }
 
+        // Générer un token JWT
         const token = generateToken(user._id);
 
+        // Ajouter le status à la réponse
+        const status = user.status; // Assurez-vous que le modèle User a un champ "status"
+
+        // Réponse avec le token et le status
         res.cookie('token', token, { httpOnly: true, secure: true });
-        res.status(200).json({ message: 'Connexion réussie !', token });
-    } 
+        res.status(200).json({ message: 'Connexion réussie !', token, status });
+    }
     catch (error) {
         res.status(500).json({ message: "Erreur lors de la connexion", error });
     }
 };
+
+// Fonction pour récupérer le profil de l'utilisateur connecté
+const getUserProfile = async (req, res) => {
+    try {
+        // Récupérer l'utilisateur connecté à partir de l'ID dans req.user
+        const user = await User.findById(req.user);
+
+        // Vérifier si l'utilisateur existe
+        if (!user) {
+            return res.status(404).json({ message: 'Utilisateur non trouvé' });
+        }
+
+        // Retourner les informations de l'utilisateur sans le mot de passe
+        const { _id, name, email, status, requestedFormation, requestedYear } = user;
+        res.status(200).json({
+            _id,
+            name,
+            email,
+            status,
+            requestedFormation,
+            requestedYear
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Erreur lors de la récupération du profil utilisateur', error });
+    }
+};
+
 const getUsers = async (req, res) => {
     try {
         const users = await User.find();
@@ -123,4 +158,4 @@ const deleteUser = async (req, res) => {
     }
 };
 
-module.exports = { createUser, verifyUser, loginUser, getUsers, getUserById, updateUser, deleteUser };
+module.exports = { createUser, verifyUser, loginUser, getUserProfile, getUsers, getUserById, updateUser, deleteUser };

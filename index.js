@@ -1,8 +1,9 @@
 ﻿const express = require('express');
-const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
-const cors = require('cors');
+require('./config/db'); // Importer la connexion MongoDB
+const configCors = require('./middlewares/configCors'); // Middleware pour CORS
+const apiKey = require('./middlewares/apiKey'); // Middleware pour la clé d'API
 
 // Charger les variables d'environnement
 dotenv.config();
@@ -13,22 +14,20 @@ const app = express();
 // Middlewares
 app.use(express.json());
 app.use(morgan('dev'));
-app.use(cors());
+
+// Appliquer le middleware CORS
+app.use(configCors);
+
+// Appliquer le middleware pour valider la clé d'API sur les routes publiques
+app.use(apiKey);
 
 // Importer les routes
-const baseRoutes = require('./routes/baseRoutes')
+const baseRoutes = require('./routes/baseRoutes');
 const userRoutes = require('./routes/userRoutes');
 
 // Utiliser les routes
 app.use('/corelink/api/', baseRoutes);
 app.use('/corelink/api/users', userRoutes);
-
-// Connexion à MongoDB
-mongoose.connect(process.env.MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-}).then(() => console.log('MongoDB connecté'))
-    .catch((error) => console.log('Erreur de connexion MongoDB:', error));
 
 // Démarrer le serveur
 const PORT = process.env.PORT || 5000;

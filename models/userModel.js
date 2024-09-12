@@ -10,9 +10,14 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user',
+    },
     status: {
         type: String, 
-        enum: ['unverified', 'verified'],
+        enum: ['unverified', 'pending_infos'],
         default: 'unverified',
         required: true
     },
