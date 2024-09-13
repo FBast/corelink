@@ -14,10 +14,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ['user', 'admin'],
         default: 'user',
+        required: true
     },
     status: {
         type: String, 
-        enum: ['unverified', 'pending_infos'],
+        enum: ['unverified', 'verified'],
         default: 'unverified',
         required: true
     },

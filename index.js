@@ -1,9 +1,9 @@
 ﻿const express = require('express');
 const dotenv = require('dotenv');
+const connectDB = require('./config/db');
 const morgan = require('morgan');
-require('./config/db'); // Importer la connexion MongoDB
-const configCors = require('./middlewares/configCors'); // Middleware pour CORS
-const apiKey = require('./middlewares/apiKey'); // Middleware pour la clé d'API
+const configCors = require('./middlewares/configCors');
+const apiKey = require('./middlewares/apiKey');
 
 // Charger les variables d'environnement
 dotenv.config();
@@ -29,8 +29,16 @@ const userRoutes = require('./routes/userRoutes');
 app.use('/corelink/api/', baseRoutes);
 app.use('/corelink/api/users', userRoutes);
 
-// Démarrer le serveur
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Serveur démarré sur le port ${PORT}`);
-});
+// Lancer la connexion à MongoDB et démarrer le serveur
+connectDB()
+    .then(() => {
+        // Démarrer le serveur uniquement si la connexion MongoDB a réussi
+        const PORT = process.env.PORT || 5000;
+        app.listen(PORT, () => {
+            console.log(`Serveur démarré sur le port ${PORT}`);
+        });
+    })
+    .catch((error) => {
+        console.error('Erreur lors de la connexion à MongoDB:', error);
+        process.exit(1); // Arrêter le processus en cas d'échec de la connexion
+    });

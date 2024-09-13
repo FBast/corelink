@@ -1,9 +1,9 @@
 ﻿const configCors = require('cors');
 
-const allowedDomains = process.env.ALLOWED_DOMAINS ? process.env.ALLOWED_DOMAINS.split(',') : [];
-
 const corsOptions = {
     origin: (origin, callback) => {
+        const allowedDomains = process.env.ALLOWED_DOMAINS ? process.env.ALLOWED_DOMAINS.split(',') : [];
+        
         if (!origin || allowedDomains.includes(origin)) {
             callback(null, true);
         } else {

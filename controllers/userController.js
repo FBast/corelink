@@ -1,7 +1,8 @@
 ﻿const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 const {sendEmail} = require("../utils/emailService");
-const {generateToken} = require("../utils/authUtils");
+const {generateToken} = require("../utils/jwtGeneration");
+const {compare} = require("bcrypt");
 
 const createUser = async (req, res) => {
     try {
@@ -35,7 +36,7 @@ const verifyUser = async (req, res) => {
             return res.status(400).json({ message: 'Code de validation invalide ou utilisateur inexistant.' });
         }
 
-        user.status = 'pending_infos';
+        user.status = 'verified';
         user.validationToken = undefined;
 
         const authToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -62,7 +63,7 @@ const loginUser = async (req, res) => {
         }
 
         // Vérification du mot de passe (assurez-vous de le faire avec bcrypt dans une vraie application)
-        const isPasswordCorrect = user.password === password; // Remplacer par bcrypt.compare(password, user.password)
+        const isPasswordCorrect = await compare(password, user.password);
         if (!isPasswordCorrect) {
             return res.status(401).json({ message: "Mot de passe incorrect" });
         }
@@ -114,9 +115,11 @@ const getUsers = async (req, res) => {
         res.status(200).json(users);
     } 
     catch (error) {
+        console.error("Erreur MongoDB:", error);  // Ajoute ce log pour plus de détails
         res.status(500).json({ message: 'Erreur lors de la récupération des utilisateurs', error });
     }
 };
+
 
 const getUserById = async (req, res) => {
     try {
