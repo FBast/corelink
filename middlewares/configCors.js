@@ -1,9 +1,9 @@
-﻿const configCors = require('cors');
+﻿import cors from 'cors';
 
 const corsOptions = {
     origin: (origin, callback) => {
         const allowedDomains = process.env.ALLOWED_DOMAINS ? process.env.ALLOWED_DOMAINS.split(',') : [];
-        
+
         if (!origin || allowedDomains.includes(origin)) {
             callback(null, true);
         } else {
@@ -13,4 +13,4 @@ const corsOptions = {
     credentials: true
 };
 
-module.exports = configCors(corsOptions);
+export default cors(corsOptions);

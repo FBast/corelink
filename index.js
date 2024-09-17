@@ -1,9 +1,11 @@
-﻿const express = require('express');
-const dotenv = require('dotenv');
-const connectDB = require('./config/db');
-const morgan = require('morgan');
-const configCors = require('./middlewares/configCors');
-const apiKey = require('./middlewares/apiKey');
+﻿import express from 'express';
+import dotenv from 'dotenv';
+import morgan from 'morgan';
+import connectDB from './config/db.js';
+import configCors from './middlewares/configCors.js';
+import apiKey from './middlewares/apiKey.js';
+import baseRoutes from './routes/baseRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 // Charger les variables d'environnement
 dotenv.config();
@@ -20,10 +22,6 @@ app.use(configCors);
 
 // Appliquer le middleware pour valider la clé d'API sur les routes publiques
 app.use(apiKey);
-
-// Importer les routes
-const baseRoutes = require('./routes/baseRoutes');
-const userRoutes = require('./routes/userRoutes');
 
 // Utiliser les routes
 app.use('/corelink/api/', baseRoutes);

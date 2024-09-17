@@ -1,4 +1,4 @@
-﻿const mongoose = require('mongoose');
+﻿import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
     email: {
@@ -17,15 +17,32 @@ const userSchema = new mongoose.Schema({
         required: true
     },
     status: {
-        type: String, 
-        enum: ['unverified', 'verified'],
+        type: String,
+        enum: ['unverified', 'verified', 'waiting_exam'],
         default: 'unverified',
         required: true
     },
     validationToken: {
-        type: String, 
+        type: String,
         required: false,
+    },
+    firstName: {
+        type: String
+    },
+    lastName: {
+        type: String
+    },
+    birtDate: {
+        type: Date
+    },
+    requestedFormation: {
+        type: String
+    },
+    requestedYear: {
+        type: Number
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema);
+
+export default User;

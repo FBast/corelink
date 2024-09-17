@@ -1,12 +1,12 @@
-﻿const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const User = require('../models/userModel');
-const dotenv = require('dotenv');
-const path = require('path');
-const connectDB = require('../config/db'); // Importer le fichier db.js
+﻿import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import User from '../models/userModel.js';
+import dotenv from 'dotenv';
+import path from 'path';
+import connectDB from '../config/db.js';
 
 // Charger les variables d'environnement depuis le fichier .env situé à la racine
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config({ path: path.resolve(path.dirname(''), '../.env') });
 
 // Connexion à MongoDB puis ajout de l'admin
 connectDB().then(async () => {

@@ -6,4 +6,4 @@
     next();
 };
 
-module.exports = apiKey;
+export default apiKey;

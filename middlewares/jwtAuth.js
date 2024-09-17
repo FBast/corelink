@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
 
 const jwtAuth = (req, res, next) => {
     const token = req.cookies?.token || req.headers['authorization']?.split(' ')[1];
@@ -8,8 +8,8 @@ const jwtAuth = (req, res, next) => {
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;  // Ajoute tout le payload décodé (y compris le rôle) dans req.user
+        // Ajoute tout le payload décodé dans req.user
+        req.user = jwt.verify(token, process.env.JWT_SECRET);
 
         // Si le token est valide, passe au middleware suivant
         next();
@@ -19,4 +19,4 @@ const jwtAuth = (req, res, next) => {
     }
 };
 
-module.exports = jwtAuth;
+export default jwtAuth;
