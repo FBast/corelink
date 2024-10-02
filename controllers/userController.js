@@ -84,6 +84,29 @@ const UserController = {
         }
     },
 
+    // Reset du password
+    async resetPassword(req, res) {
+        try {
+            const {email} = req.body;
+            const validationToken = Math.floor(100000 + Math.random() * 900000).toString();  // Code à 6 chiffres
+
+            // Trouver l'utilisateur par email et mettre à jour le validationToken
+            const user = await User.findOneAndUpdate({ email: email }, { validationToken: validationToken }, { new: true });
+            if (!user) {
+                return res.status(404).json({ message: 'Utilisateur non trouvé' });
+            }
+            
+            const subject = 'Réinitialisation du mot de passe';
+            const text = `Vous avez demandé une réinitialisation de votre mot de passe !\n\nVotre code de validation est : ${validationToken}\n\nVeuillez le saisir sur notre site pour réinitialiser votre mot de passe.`;
+            await sendEmail(email, subject, text);
+
+            res.status(201).json({message: 'Réinitialisation en cours ! Vérifiez votre email pour changer votre mot de passe.'});
+        } catch (error) {
+            console.error('Erreur lors du reset du password :', error);
+            res.status(500).json({message: 'Erreur lors du reset du password', error});
+        }
+    },
+    
     // Récupération du profil utilisateur
     async getUserProfile(req, res) {
         try {

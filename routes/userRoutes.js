@@ -9,6 +9,7 @@ const router = Router();
 router.post('/', UserController.createUser);      // Création d'un nouvel utilisateur
 router.post('/verify', UserController.verifyUser); // Vérification de l'adresse email
 router.post('/login', UserController.loginUser);   // Connexion utilisateur
+router.post('/reset', UserController.resetPassword);   // Reset password
 
 // Route protégée pour récupérer les infos de l'utilisateur connecté
 router.get('/me', jwtAuth, UserController.getUserProfile); // Récupérer les informations de l'utilisateur connecté
