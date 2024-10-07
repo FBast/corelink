@@ -22,7 +22,9 @@ const UserController = {
             await newUser.save();
 
             const subject = 'Vérification de votre compte';
-            const text = `Merci de vous être inscrit sur notre plateforme !\n\nVotre code de validation est : ${validationToken}\n\nVeuillez le saisir sur notre site pour activer votre compte.`;
+            const text = `Merci de vous être inscrit sur notre plateforme !
+            \nVotre code de validation est : ${validationToken}
+            \nVeuillez le saisir sur notre site pour activer votre compte.`;
             await sendEmail(newUser.email, subject, text);
 
             res.status(201).json({ message: 'Utilisateur créé avec succès ! Vérifiez votre email pour valider votre compte.' });
@@ -97,7 +99,9 @@ const UserController = {
             }
             
             const subject = 'Réinitialisation du mot de passe';
-            const text = `Vous avez demandé une réinitialisation de votre mot de passe !\n\nVotre code de validation est : ${validationToken}\n\nVeuillez le saisir sur notre site pour réinitialiser votre mot de passe.`;
+            const text = `Vous avez demandé une réinitialisation de votre mot de passe 
+            \nVotre code de validation est : ${validationToken}
+            \nVeuillez le saisir sur notre site pour réinitialiser votre mot de passe.`;
             await sendEmail(email, subject, text);
 
             res.status(201).json({message: 'Réinitialisation en cours ! Vérifiez votre email pour changer votre mot de passe.'});
