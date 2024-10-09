@@ -4,7 +4,6 @@ import { sendEmail } from "../utils/emailService.js";
 import bcrypt from "bcrypt";
 
 const UserController = {
-    // Créer un utilisateur
     async createUser(req, res) {
         try {
             const { email, password } = req.body;
@@ -73,7 +72,11 @@ const UserController = {
                 return res.status(401).json({ message: "Mot de passe incorrect" });
             }
 
-            const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, {
+            const token = jwt.sign({ 
+                userId: user._id, 
+                role: user.role,
+                status: user.status
+            }, process.env.JWT_SECRET, {
                 expiresIn: '1h'
             });
 
@@ -167,7 +170,7 @@ const UserController = {
     },
 
     // Récupérer un utilisateur par son ID
-    async getUserById(req, res) {
+    async getUser(req, res) {
         try {
             const user = await User.findById(req.params.id);
             if (!user) {
