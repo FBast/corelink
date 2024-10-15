@@ -7,6 +7,7 @@ import apiKey from './middlewares/apiKey.js';
 import baseRoutes from './routes/baseRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import topicRoutes from "./routes/topicRoutes.js";
+import exerciseRoutes from "./routes/exerciseRoutes.js";
 
 // Charger les variables d'environnement
 dotenv.config();
@@ -28,6 +29,7 @@ app.use(apiKey);
 app.use('/corelink/api/', baseRoutes);
 app.use('/corelink/api/users', userRoutes);
 app.use('/corelink/api/topics', topicRoutes);
+app.use('/corelink/api/exercises', exerciseRoutes);
 
 // Lancer la connexion à MongoDB et démarrer le serveur
 connectDB()
