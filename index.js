@@ -8,6 +8,8 @@ import baseRoutes from './routes/baseRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import topicRoutes from "./routes/topicRoutes.js";
 import exerciseRoutes from "./routes/exerciseRoutes.js";
+import formationRoutes from "./routes/formationRoutes.js";
+import gradeRoutes from "./routes/gradeRoutes.js";
 
 // Charger les variables d'environnement
 dotenv.config();
@@ -30,6 +32,8 @@ app.use('/corelink/api/', baseRoutes);
 app.use('/corelink/api/users', userRoutes);
 app.use('/corelink/api/topics', topicRoutes);
 app.use('/corelink/api/exercises', exerciseRoutes);
+app.use('/corelink/api/formations', formationRoutes);
+app.use('/corelink/api/grades', gradeRoutes);
 
 // Lancer la connexion à MongoDB et démarrer le serveur
 connectDB()

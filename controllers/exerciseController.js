@@ -32,7 +32,7 @@ const ExerciseController = {
         try {
             const filters = {};
             if (req.query.topicId) {
-                filters.topic = req.query.topicId;
+                filters.topicId = req.query.topicId;
             }
 
             const exercises = await Exercise.find(filters);

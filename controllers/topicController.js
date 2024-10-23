@@ -1,4 +1,5 @@
 ﻿import Topic from '../models/topicModel.js';
+import Exercise from "../models/exerciseModel.js";
 
 const TopicController = {
     async createTopic(req, res) {
@@ -48,15 +49,25 @@ const TopicController = {
 
     async deleteTopic(req, res) {
         try {
-            const topic = await Topic.findByIdAndDelete(req.params.id);
+            // Find the topic to delete
+            const topic = await Topic.findById(req.params.id);
             if (!topic) {
-                return res.status(404).json({ message: 'Sujet non trouvé' });
+                return res.status(404).json({ message: 'Topic not found' });
             }
-            res.status(200).json({ message: 'Sujet supprimé avec succès' });
+
+            // Delete all exercises associated with this topic
+            await Exercise.deleteMany({ topicId: topic._id });
+
+            // Delete the topic
+            await Topic.findByIdAndDelete(req.params.id);
+
+            res.status(200).json({ message: 'Topic and associated exercises deleted successfully' });
         } catch (error) {
-            res.status(500).json({ message: 'Erreur lors de la suppression du sujet', error });
+            console.error('Error deleting topic and exercises:', error);
+            res.status(500).json({ message: 'Error deleting the topic and its exercises', error });
         }
     },
+
     
     async generateExam(req, res) {
         return res.status(501);
