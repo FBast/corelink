@@ -5,9 +5,11 @@ import GradeController from "../controllers/gradeController.js";
 
 const router = Router();
 
+// User routes
+router.get('/', jwtAuth, GradeController.getGrades);
+
 // Admin routes for grades
 router.post('/', jwtAuth, adminAuth, GradeController.createGrade);
-router.get('/', jwtAuth, adminAuth, GradeController.getGrades); // Requires `formationId` as a query parameter
 router.get('/:id', jwtAuth, adminAuth, GradeController.getGrade);
 router.put('/:id', jwtAuth, adminAuth, GradeController.updateGrade);
 router.delete('/:id', jwtAuth, adminAuth, GradeController.deleteGrade);

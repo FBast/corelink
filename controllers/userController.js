@@ -123,14 +123,14 @@ const UserController = {
                 return res.status(404).json({ message: 'Utilisateur non trouvé' });
             }
 
-            const { _id, name, email, status, requestedFormation, requestedYear } = user;
+            const { _id, name, email, status, requestedFormation, requestedGrade } = user;
             res.status(200).json({
                 _id,
                 name,
                 email,
                 status,
                 requestedFormation,
-                requestedYear
+                requestedGrade
             });
         } catch (error) {
             res.status(500).json({ message: 'Erreur lors de la récupération du profil utilisateur', error });

@@ -1,36 +1,21 @@
 ﻿import Grade from '../models/gradeModel.js';
 import Formation from '../models/formationModel.js';
-import Exercise from "../models/exerciseModel.js";
+import {generateExamPDF} from "../utils/pdfGenerator.js";
 
 const GradeController = {
     async generateExam(req, res) {
         try {
+            // Récupération du grade en fonction de l'ID fourni
             const grade = await Grade.findById(req.params.id).populate('topics');
             if (!grade) {
                 return res.status(404).json({ message: 'Grade not found' });
             }
 
-            const doc = new PDFDocument();
-            const chunks = [];
-            doc.on('data', (chunk) => chunks.push(chunk));
-            doc.on('end', () => {
-                const pdf = Buffer.concat(chunks);
-                res.setHeader('Content-Type', 'application/pdf');
-                res.setHeader('Content-Disposition', 'attachment; filename=exam.pdf');
-                res.send(pdf);
-            });
+            // Appeler la fonction utilitaire pour générer le PDF
+            const pdfBase64 = await generateExamPDF(grade);
 
-            for (const topic of grade.topics) {
-                const exercises = await Exercise.find({ topicId: topic._id });
-                if (exercises.length > 0) {
-                    const randomExercise = exercises[Math.floor(Math.random() * exercises.length)];
-                    doc.addPage().fontSize(16).text(`Topic: ${topic.title}`, { underline: true });
-                    doc.moveDown().fontSize(12).text(`Exercise: ${randomExercise.title}`);
-                    doc.moveDown().fontSize(10).text(randomExercise.text);
-                }
-            }
-
-            doc.end();
+            // Envoyer le PDF encodé en base64 dans la réponse JSON
+            res.status(200).json({ pdf: pdfBase64 });
         } catch (error) {
             console.error('Error generating exam:', error);
             res.status(500).json({ message: 'Error generating exam', error });
@@ -55,7 +40,8 @@ const GradeController = {
 
     async getGrades(req, res) {
         try {
-            const grades = await Grade.find({ formationId: req.query.formationId }).populate('topics');
+            const filter = req.query.formationId ? { formationId: req.query.formationId } : {};
+            const grades = await Grade.find(filter);
             res.status(200).json(grades);
         } catch (error) {
             console.error('Error fetching grades:', error);
@@ -65,7 +51,7 @@ const GradeController = {
 
     async getGrade(req, res) {
         try {
-            const grade = await Grade.findById(req.params.id).populate('topics');
+            const grade = await Grade.findById(req.params.id);
             if (!grade) {
                 return res.status(404).json({ message: 'Grade not found' });
             }
@@ -77,7 +63,7 @@ const GradeController = {
 
     async updateGrade(req, res) {
         try {
-            const grade = await Grade.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate('topics');
+            const grade = await Grade.findByIdAndUpdate(req.params.id, req.body, { new: true });
             if (!grade) {
                 return res.status(404).json({ message: 'Grade not found' });
             }

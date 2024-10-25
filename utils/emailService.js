@@ -1,8 +1,8 @@
 ﻿import nodemailer from 'nodemailer';
 import axios from 'axios';
 
-// Fonction générique pour envoyer un email avec OAuth 2.0
-export const sendEmail = async (recipientEmail, subject, text) => {
+// Fonction générique pour envoyer un email avec OAuth 2.0 et des pièces jointes
+export const sendEmail = async (recipientEmail, subject, text, attachments = []) => {
     try {
         // Obtenir un nouveau access token via le refresh token
         const { data } = await axios.post('https://oauth2.googleapis.com/token', {
@@ -30,11 +30,12 @@ export const sendEmail = async (recipientEmail, subject, text) => {
             from: process.env.EMAIL_USER,
             to: recipientEmail,
             subject: subject,
-            text: text
+            text: text,
+            attachments: attachments // Ajout des pièces jointes ici
         };
 
         await transporter.sendMail(mailOptions);
-        console.log('Email envoyé avec succès !');
+        console.log(`Email envoyé avec succès à ${recipientEmail} !`);
     } catch (error) {
         console.error('Erreur lors de l\'envoi de l\'email :', error);
     }

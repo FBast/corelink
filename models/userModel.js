@@ -38,8 +38,8 @@ const userSchema = new mongoose.Schema({
     requestedFormation: {
         type: String
     },
-    requestedYear: {
-        type: Number
+    requestedGrade: {
+        type: String
     }
 }, { timestamps: true });
 
