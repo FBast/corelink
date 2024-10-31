@@ -1,13 +1,44 @@
 ﻿import User from '../models/userModel.js';
 import jwt from 'jsonwebtoken';
-import { sendEmail } from "../utils/emailService.js";
+import {sendEmail, sendVerificationCode} from "../utils/emailService.js";
 import bcrypt from "bcrypt";
 
 const UserController = {
+    async resendVerificationCode(req, res) {
+        try {
+            const { email } = req.body;
+
+            // Trouver l'utilisateur par email
+            const user = await User.findOne({ email });
+            if (!user) {
+                return res.status(404).json({ message: 'Utilisateur non trouvé.' });
+            }
+
+            // Vérifier si l'utilisateur est déjà vérifié
+            if (user.status === "verified") {
+                return res.status(400).json({ message: 'Ce compte est déjà vérifié.' });
+            }
+
+            // Envoyer le code de vérification
+            await sendVerificationCode(user);
+
+            res.status(200).json({ message: 'Le code de vérification a été renvoyé avec succès.' });
+        } catch (error) {
+            console.error('Erreur lors du renvoi du code de vérification :', error);
+            res.status(500).json({ message: 'Erreur lors du renvoi du code de vérification' });
+        }
+    },
+
+    // Création de l'utilisateur avec envoi du code de validation
     async createUser(req, res) {
         try {
             const { email, password } = req.body;
-            const validationToken = Math.floor(100000 + Math.random() * 900000).toString();  // Code à 6 chiffres
+
+            // Vérifier si l'utilisateur existe déjà
+            const existingUser = await User.findOne({ email });
+            if (existingUser) {
+                return res.status(400).json({ message: 'Cet email est déjà utilisé.' });
+            }
 
             // Hash du mot de passe
             const hashedPassword = await bcrypt.hash(password, 10);
@@ -15,21 +46,17 @@ const UserController = {
             const newUser = new User({
                 email,
                 password: hashedPassword,
-                validationToken,
                 isVerified: false,
             });
             await newUser.save();
 
-            const subject = 'Vérification de votre compte';
-            const text = `Merci de vous être inscrit sur notre plateforme !
-            \nVotre code de validation est : ${validationToken}
-            \nVeuillez le saisir sur notre site pour activer votre compte.`;
-            await sendEmail(newUser.email, subject, text);
+            // Appeler la fonction pour envoyer le code de vérification
+            await sendVerificationCode(newUser);
 
             res.status(201).json({ message: 'Utilisateur créé avec succès ! Vérifiez votre email pour valider votre compte.' });
         } catch (error) {
             console.error('Erreur lors de la création de l\'utilisateur :', error);
-            res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur', error });
+            res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur' });
         }
     },
 
@@ -89,8 +116,8 @@ const UserController = {
         }
     },
 
-    // Reset du password
-    async resetPassword(req, res) {
+    // Request a password reset
+    async requestPasswordReset(req, res) {
         try {
             const {email} = req.body;
             const validationToken = Math.floor(100000 + Math.random() * 900000).toString();  // Code à 6 chiffres
@@ -111,6 +138,43 @@ const UserController = {
         } catch (error) {
             console.error('Erreur lors du reset du password :', error);
             res.status(500).json({message: 'Erreur lors du reset du password', error});
+        }
+    },
+
+    async resetPassword(req, res) {
+        try {
+            const { email, validationToken, newPassword } = req.body;
+
+            // Trouver l'utilisateur par email
+            const user = await User.findOne({ email });
+            if (!user) {
+                return res.status(404).json({ message: 'Utilisateur non trouvé' });
+            }
+
+            // Vérifier si le validationToken correspond
+            if (user.validationToken !== validationToken) {
+                return res.status(400).json({ message: 'Code de validation invalide' });
+            }
+
+            // Optionnel : Vérifier si le code a expiré (si vous enregistrez une date d'expiration)
+            if (user.validationTokenExpires && user.validationTokenExpires < Date.now()) {
+                return res.status(400).json({ message: 'Le code de validation a expiré' });
+            }
+
+            // Mettre à jour le mot de passe
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            user.password = hashedPassword;
+
+            // Supprimer le validationToken
+            user.validationToken = undefined;
+            user.validationTokenExpires = undefined;
+
+            await user.save();
+
+            res.status(200).json({ message: 'Mot de passe réinitialisé avec succès' });
+        } catch (error) {
+            console.error('Erreur lors de la réinitialisation du mot de passe :', error);
+            res.status(500).json({ message: 'Erreur lors de la réinitialisation du mot de passe' });
         }
     },
     

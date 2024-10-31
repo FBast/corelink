@@ -7,9 +7,11 @@ const router = Router();
 
 // Public routes
 router.post('/', UserController.createUser);
+router.post('/resend-code', UserController.resendVerificationCode);
 router.post('/verify', UserController.verifyUser);
 router.post('/login', UserController.loginUser);
-router.post('/reset', UserController.resetPassword);
+router.post('/request-password-reset', UserController.requestPasswordReset);
+router.post('/reset-password', UserController.resetPassword);
 
 // User routes
 router.get('/me', jwtAuth, UserController.getUserProfile);

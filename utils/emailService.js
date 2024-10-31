@@ -40,3 +40,19 @@ export const sendEmail = async (recipientEmail, subject, text, attachments = [])
         console.error('Erreur lors de l\'envoi de l\'email :', error);
     }
 };
+
+export const sendVerificationCode = async (user) => {
+    const validationToken = Math.floor(100000 + Math.random() * 900000).toString(); // Code à 6 chiffres
+
+    // Mettre à jour l'utilisateur avec le nouveau token et la date d'expiration
+    user.validationToken = validationToken;
+    user.validationTokenExpires = Date.now() + 3600000; // Expire dans 1 heure
+    await user.save();
+
+    const subject = 'Vérification de votre compte';
+    const text = `Merci de vous être inscrit sur notre plateforme !
+    Votre code de validation est : ${validationToken}
+    Veuillez le saisir sur notre site pour activer votre compte.`;
+
+    await sendEmail(user.email, subject, text);
+};
