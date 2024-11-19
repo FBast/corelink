@@ -162,8 +162,7 @@ const UserController = {
             }
 
             // Mettre à jour le mot de passe
-            const hashedPassword = await bcrypt.hash(newPassword, 10);
-            user.password = hashedPassword;
+            user.password = await bcrypt.hash(newPassword, 10);
 
             // Supprimer le validationToken
             user.validationToken = undefined;
@@ -249,17 +248,51 @@ const UserController = {
     // Mettre à jour un utilisateur
     async updateUser(req, res) {
         try {
-            const { name, email, password } = req.body;
-            const user = await User.findByIdAndUpdate(req.params.id, { name, email, password }, { new: true });
+            const {
+                email,
+                password,
+                role,
+                status,
+                firstName,
+                lastName,
+                birthDate,
+                requestedFormation,
+                requestedGrade,
+            } = req.body;
+
+            const updates = {
+                email,
+                role,
+                status,
+                firstName,
+                lastName,
+                birthDate,
+                requestedFormation,
+                requestedGrade,
+            };
+
+            // Si le mot de passe est fourni, on le hache avant de l'enregistrer
+            if (password) {
+                const saltRounds = 10;
+                updates.password = await bcrypt.hash(password, saltRounds);
+            }
+
+            const user = await User.findByIdAndUpdate(
+                req.params.id,
+                updates,
+                { new: true, runValidators: true }
+            );
+
             if (!user) {
                 return res.status(404).json({ message: 'Utilisateur non trouvé' });
             }
+
             res.status(200).json(user);
         } catch (error) {
             res.status(500).json({ message: 'Erreur lors de la mise à jour de l\'utilisateur', error });
         }
     },
-
+    
     // Supprimer un utilisateur
     async deleteUser(req, res) {
         try {
