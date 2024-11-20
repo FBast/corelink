@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema({
     lastName: {
         type: String
     },
-    birtDate: {
+    birthDate: {
         type: Date
     },
     requestedFormation: {
@@ -40,6 +40,12 @@ const userSchema = new mongoose.Schema({
     },
     requestedGrade: {
         type: String
+    },
+    evaluation: {
+        type: String
+    },
+    meetingDate: {
+        type: Date
     }
 }, { timestamps: true });
 

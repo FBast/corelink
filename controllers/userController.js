@@ -248,40 +248,13 @@ const UserController = {
     // Mettre à jour un utilisateur
     async updateUser(req, res) {
         try {
-            const {
-                email,
-                password,
-                role,
-                status,
-                firstName,
-                lastName,
-                birthDate,
-                requestedFormation,
-                requestedGrade,
-            } = req.body;
+            const userId = req.params.id;
 
-            const updates = {
-                email,
-                role,
-                status,
-                firstName,
-                lastName,
-                birthDate,
-                requestedFormation,
-                requestedGrade,
-            };
-
-            // Si le mot de passe est fourni, on le hache avant de l'enregistrer
-            if (password) {
-                const saltRounds = 10;
-                updates.password = await bcrypt.hash(password, saltRounds);
+            if (req.body.password) {
+                req.body.password = await bcrypt.hash(req.body.password, 10);
             }
 
-            const user = await User.findByIdAndUpdate(
-                req.params.id,
-                updates,
-                { new: true, runValidators: true }
-            );
+            const user = await User.findByIdAndUpdate(userId, req.body, { new: true });
 
             if (!user) {
                 return res.status(404).json({ message: 'Utilisateur non trouvé' });
