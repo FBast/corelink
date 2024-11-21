@@ -27,14 +27,14 @@ export const generateExamPDF = async (grade) => {
 
                     // Ajouter le titre du topic
                     doc.fontSize(16)
-                        .text(`Topic: ${topic.title}`, { underline: true });
+                        .text(`Sujet: ${topic.title}`, { underline: true });
 
                     // Ajouter un espace
                     doc.moveDown(0.5);
 
                     // Ajouter le titre de l'exercice
                     doc.fontSize(12)
-                        .text(`Exercise: ${randomExercise.title}`);
+                        .text(`Exercice: ${randomExercise.title}`);
 
                     // Ajouter un espace
                     doc.moveDown(0.5);

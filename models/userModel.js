@@ -18,7 +18,6 @@ const userSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['unverified', 'verified', 'waiting_exam'],
         default: 'unverified',
         required: true
     },
@@ -46,6 +45,9 @@ const userSchema = new mongoose.Schema({
     },
     meetingDate: {
         type: Date
+    },
+    examPdf: {
+        type: Buffer
     }
 }, { timestamps: true });
 

@@ -2,8 +2,8 @@
 import moment from 'moment';
 import Session from "../models/sessionModel.js";
 import User from "../models/userModel.js";
-import {sendEmail} from "./emailService.js";
-import {generateExamPDF} from "./pdfGenerator.js";
+import { sendEmail } from "./emailService.js";
+import { generateExamPDF } from "./pdfGenerator.js";
 import Grade from "../models/gradeModel.js";
 
 // Planification de la tâche toutes les heures
@@ -12,29 +12,24 @@ cron.schedule('*/10 * * * * *', async () => {
 
     try {
         const ongoingSessions = await Session.find({
-            startDate: { $lte: new Date() }, // La date de début est inférieure ou égale à maintenant
-            endDate: { $gte: new Date() }    // La date de fin est supérieure ou égale à maintenant
+            startDate: { $lte: new Date() },
+            endDate: { $gte: new Date() }
         });
 
-        // Parcourir chaque session en cours
         for (const session of ongoingSessions) {
-            // Récupérer les utilisateurs ayant le statut 'waiting_exam' et dont la formation et le grade correspondent à ceux de la session
             const users = await User.find({
-                status: 'waiting_exam'
+                status: 'awaiting_exam'
             });
 
-            // Pour chaque utilisateur, générer l'examen et envoyer un email
             for (const user of users) {
                 try {
-                    // Récupérer le grade correspondant à user.requestedGrade
                     const grade = await Grade.findById(user.requestedGrade).populate('topics');
 
                     if (!grade) {
                         console.error(`Le grade avec l'ID ${user.requestedGrade} n'a pas été trouvé.`);
-                        continue; // Passer à l'utilisateur suivant si le grade n'est pas trouvé
+                        continue;
                     }
-                    
-                    // Générer le PDF de l'examen pour le grade de l'utilisateur
+
                     const pdfBase64 = await generateExamPDF(grade);
 
                     // Convertir le PDF de base64 en Buffer
@@ -43,8 +38,10 @@ cron.schedule('*/10 * * * * *', async () => {
                     // Envoyer l'email avec l'examen en pièce jointe
                     await sendEmail(
                         user.email,
-                        `Votre épreuve de ${session.name} commence bientôt`,
-                        `Bonjour ${user.firstName},\n\nVotre épreuve de ${session.name} commence le ${moment(session.startDate).format('LLL')}. Veuillez trouver ci-joint l'examen correspondant.`,
+                        `Votre épreuve pour l'ENSI' commence !`,
+                        `Bonjour ${user.firstName},
+                        \n\nVotre épreuve pour la session "${session.name}" commence le ${moment(session.startDate).format('LLL')} au matin. Veuillez trouver ci-joint l'examen correspondant.
+                        \nCette épreuve prendra fin le ${moment(session.startDate).format('LLL')} au soir. Pensez à déposer votre travail sur la plateforme d'inscription.`,
                         [
                             {
                                 filename: 'exam.pdf',
@@ -54,13 +51,17 @@ cron.schedule('*/10 * * * * *', async () => {
                         ]
                     );
 
-                    console.log(`Examen envoyé à ${user.email} pour la session ${session.name}.`);
+                    // Mettre à jour le statut et sauvegarder le PDF dans l'utilisateur
+                    user.status = 'exam_in_progress';
+                    user.examPdf = pdfBuffer; // Sauvegarde du PDF
+                    await user.save();
+
+                    console.log(`Examen envoyé à ${user.email} pour la session ${session.name}. Statut mis à jour en 'exam_in_progress'.`);
                 } catch (error) {
                     console.error(`Erreur lors de l'envoi de l'examen à ${user.email}:`, error);
                 }
             }
         }
-
     } catch (error) {
         console.error('Erreur lors de la vérification des sessions d’épreuves :', error);
     }

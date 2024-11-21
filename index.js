@@ -11,7 +11,7 @@ import exerciseRoutes from "./routes/exerciseRoutes.js";
 import formationRoutes from "./routes/formationRoutes.js";
 import gradeRoutes from "./routes/gradeRoutes.js";
 import sessionRoutes from "./routes/sessionRoutes.js";
-// import './utils/cronJobs.js';
+import './utils/cronJobs.js';
 
 // Charger les variables d'environnement
 dotenv.config();

@@ -187,14 +187,7 @@ const UserController = {
             }
 
             const { _id, name, email, status, requestedFormation, requestedGrade } = user;
-            res.status(200).json({
-                _id,
-                name,
-                email,
-                status,
-                requestedFormation,
-                requestedGrade
-            });
+            res.status(200).json(user);
         } catch (error) {
             res.status(500).json({ message: 'Erreur lors de la récupération du profil utilisateur', error });
         }
