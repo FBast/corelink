@@ -48,6 +48,9 @@ const userSchema = new mongoose.Schema({
     },
     examPdf: {
         type: Buffer
+    },
+    examDeposit: {
+        type: Buffer
     }
 }, { timestamps: true });
 
