@@ -15,7 +15,7 @@ const UserController = {
             }
 
             // Vérifier si l'utilisateur est déjà vérifié
-            if (user.status === "verified") {
+            if (user.status === "awaiting_information") {
                 return res.status(400).json({ message: 'Ce compte est déjà vérifié.' });
             }
 
@@ -69,7 +69,7 @@ const UserController = {
                 return res.status(400).json({ message: 'Code de validation invalide ou utilisateur inexistant.' });
             }
 
-            user.status = 'verified';
+            user.status = 'awaiting_information';
             user.validationToken = undefined;
 
             const authToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });

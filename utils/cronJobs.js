@@ -18,7 +18,7 @@ cron.schedule('*/10 * * * * *', async () => {
 
         for (const session of ongoingSessions) {
             const users = await User.find({
-                status: 'awaiting_exam'
+                status: 'awaiting_session'
             });
 
             for (const user of users) {

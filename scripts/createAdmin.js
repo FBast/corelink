@@ -20,7 +20,7 @@ connectDB().then(async () => {
             console.log("L'admin existe déjà, mise à jour des informations...");
             admin.password = await bcrypt.hash(adminPassword, 10);
             admin.role = 'admin';
-            admin.status = 'verified';
+            admin.status = 'awaiting_information';
         } else {
             // Créer un nouvel administrateur si aucun n'existe
             console.log("Aucun admin trouvé, création d'un nouvel admin...");
@@ -28,7 +28,7 @@ connectDB().then(async () => {
                 email: adminEmail,
                 password: await bcrypt.hash(adminPassword, 10),
                 role: 'admin',
-                status: 'verified',
+                status: 'awaiting_information',
             });
         }
 
