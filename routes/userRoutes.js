@@ -1,6 +1,7 @@
 ﻿import { Router } from 'express';
 import jwtAuth from "../middlewares/jwtAuth.js";
 import adminAuth from "../middlewares/adminAuth.js";
+import {singleFileUpload} from "../middlewares/fileUpload.js";
 import UserController from "../controllers/userController.js";
 
 const router = Router();
@@ -16,6 +17,7 @@ router.post('/reset-password', UserController.resetPassword);
 // User routes
 router.get('/me', jwtAuth, UserController.getUserProfile);
 router.put('/me', jwtAuth, UserController.updateUserProfile);
+router.post('/me/upload-report', jwtAuth, singleFileUpload('examReport'), UserController.uploadExamReport);
 
 // Admin routes
 router.get('/', jwtAuth, adminAuth, UserController.getUsers);

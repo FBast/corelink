@@ -185,8 +185,7 @@ const UserController = {
             if (!user) {
                 return res.status(404).json({ message: 'Utilisateur non trouvé' });
             }
-
-            const { _id, name, email, status, requestedFormation, requestedGrade } = user;
+            
             res.status(200).json(user);
         } catch (error) {
             res.status(500).json({ message: 'Erreur lors de la récupération du profil utilisateur', error });
@@ -214,6 +213,30 @@ const UserController = {
         }
     },
 
+    // Upload d'un rendu d'examen pour l'utilisateur connecté
+    async uploadExamReport(req, res) {
+        try {
+            const userId = req.user.userId;
+
+            if (!req.file) {
+                return res.status(400).json({ message: 'Aucun fichier PDF fourni.' });
+            }
+
+            const user = await User.findById(userId);
+            if (!user) {
+                return res.status(404).json({ message: 'Utilisateur non trouvé' });
+            }
+
+            user.examReport = req.file.buffer;
+            await user.save();
+
+            res.status(200).json({ message: 'Fichier PDF uploadé avec succès.' });
+        } catch (error) {
+            console.error('Erreur lors de l\'upload du fichier PDF :', error);
+            res.status(500).json({ message: 'Erreur lors de l\'upload du fichier PDF', error });
+        }
+    },
+    
     // Récupérer tous les utilisateurs
     async getUsers(req, res) {
         try {
@@ -242,18 +265,28 @@ const UserController = {
     async updateUser(req, res) {
         try {
             const userId = req.params.id;
+            const data = req.body;
 
-            if (req.body.password) {
-                req.body.password = await bcrypt.hash(req.body.password, 10);
+            // Récupérer l'utilisateur existant dans la base de données
+            const existingUser = await User.findById(userId);
+            if (!existingUser) {
+                return res.status(404).json({ message: "User not found" });
             }
 
-            const user = await User.findByIdAndUpdate(userId, req.body, { new: true });
-
-            if (!user) {
-                return res.status(404).json({ message: 'Utilisateur non trouvé' });
+            // Si un mot de passe est présent et différent, alors le hacher
+            if (data.password && data.password !== existingUser.password) {
+                data.password = await bcrypt.hash(data.password, 10);
+            } else {
+                // Si le mot de passe n'a pas changé, le retirer pour éviter de le rechiffrer
+                delete data.password;
             }
 
-            res.status(200).json(user);
+            // Mettre à jour l'utilisateur avec les nouvelles données
+            const updatedUser = await User.findByIdAndUpdate(userId, data, {
+                new: true,
+            });
+            
+            res.status(200).json(updatedUser);
         } catch (error) {
             res.status(500).json({ message: 'Erreur lors de la mise à jour de l\'utilisateur', error });
         }

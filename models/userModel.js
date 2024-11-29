@@ -46,10 +46,10 @@ const userSchema = new mongoose.Schema({
     meetingDate: {
         type: Date
     },
-    examPdf: {
+    examSubject: {
         type: Buffer
     },
-    examDeposit: {
+    examReport: {
         type: Buffer
     }
 }, { timestamps: true });
