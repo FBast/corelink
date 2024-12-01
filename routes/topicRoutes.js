@@ -15,4 +15,7 @@ router.get('/:id', jwtAuth, adminAuth, TopicController.getTopic);
 router.put('/:id', jwtAuth, adminAuth, TopicController.updateTopic);
 router.delete('/:id', jwtAuth, adminAuth, TopicController.deleteTopic);
 
+router.post('/:id/exercises', jwtAuth, adminAuth, TopicController.addExercise);
+router.delete('/:topicId/exercises/:exerciseId', jwtAuth, adminAuth, TopicController.deleteExercise);
+
 export default router;

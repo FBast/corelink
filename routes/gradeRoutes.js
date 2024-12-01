@@ -8,7 +8,7 @@ const router = Router();
 // User routes
 router.get('/', jwtAuth, GradeController.getGrades);
 
-// Admin routes for grades
+// Admin routes
 router.post('/', jwtAuth, adminAuth, GradeController.createGrade);
 router.get('/:id', jwtAuth, adminAuth, GradeController.getGrade);
 router.put('/:id', jwtAuth, adminAuth, GradeController.updateGrade);

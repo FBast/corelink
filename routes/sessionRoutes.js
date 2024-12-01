@@ -8,7 +8,7 @@ const router = Router();
 // User routes
 router.get('/', jwtAuth, SessionController.getSessions);
 
-// Routes pour les sessions
+// Admin routes
 router.post('/', jwtAuth, adminAuth, SessionController.createSession);
 router.get('/:id', jwtAuth, adminAuth, SessionController.getSession);
 router.put('/:id', jwtAuth, adminAuth, SessionController.updateSession);

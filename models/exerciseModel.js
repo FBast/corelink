@@ -1,6 +1,6 @@
 ﻿import mongoose from 'mongoose';
 
-const exerciseSchema = new mongoose.Schema({
+export const exerciseSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true
@@ -12,11 +12,6 @@ const exerciseSchema = new mongoose.Schema({
     image: {
         type: String,
         required: false
-    },
-    topicId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Topic',
-        required: true
     }
 }, { timestamps: true });
 

@@ -5,6 +5,10 @@ const sessionSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    enabled: {
+        type: Boolean,
+        required: true,
+    },
     startDate: {
         type: Date,
         required: true,

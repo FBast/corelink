@@ -12,6 +12,13 @@ import formationRoutes from "./routes/formationRoutes.js";
 import gradeRoutes from "./routes/gradeRoutes.js";
 import sessionRoutes from "./routes/sessionRoutes.js";
 import './utils/cronJobs.js';
+import cron from "node-cron";
+import {processCronJobs} from "./utils/cronJobs.js";
+
+// Routines de traitement automatisé
+cron.schedule('*/10 * * * * *', async () => {
+    await processCronJobs();
+});
 
 // Charger les variables d'environnement
 dotenv.config();

@@ -1,13 +1,8 @@
 ﻿import mongoose from 'mongoose';
 
-const gradeSchema = new mongoose.Schema({
-    grade: {
+export const gradeSchema = new mongoose.Schema({
+    title: {
         type: String,
-        required: true
-    },
-    formationId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Formation',
         required: true
     },
     topics: [{

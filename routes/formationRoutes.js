@@ -8,7 +8,7 @@ const router = Router();
 // User routes
 router.get('/', jwtAuth, FormationController.getFormations);
 
-// Admin routes for formations
+// Admin routes
 router.post('/', jwtAuth, adminAuth, FormationController.createFormation);
 router.get('/:id', jwtAuth, adminAuth, FormationController.getFormation);
 router.put('/:id', jwtAuth, adminAuth, FormationController.updateFormation);

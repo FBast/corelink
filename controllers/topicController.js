@@ -1,76 +1,124 @@
 ﻿import Topic from '../models/topicModel.js';
-import Exercise from "../models/exerciseModel.js";
 
 const TopicController = {
+    // Create a new topic with optional exercises
     async createTopic(req, res) {
         try {
-            const topic = new Topic(req.body);
+            const topicData = req.body; // Includes "exercises" if provided
+            const topic = new Topic(topicData);
             await topic.save();
-            res.status(201).json({ message: 'Sujet créé avec succès !', topic: topic });
+            res.status(201).json({ message: 'Topic created successfully!', topic });
         } catch (error) {
-            console.error('Erreur lors de la création du sujet :', error);
-            res.status(500).json({ message: 'Erreur lors de la création du sujet', error });
+            console.error('Error creating topic:', error);
+            res.status(500).json({ message: 'Error creating topic', error });
         }
     },
 
+    // Retrieve all topics along with their exercises
     async getTopics(req, res) {
         try {
-            const topics = await Topic.find();
+            const topics = await Topic.find(); // Exercises are embedded in the topics
             res.status(200).json(topics);
         } catch (error) {
-            console.error('Erreur lors de la récupération des sujets :', error);
-            res.status(500).json({ message: 'Erreur lors de la récupération des sujets', error });
+            console.error('Error fetching topics:', error);
+            res.status(500).json({ message: 'Error fetching topics', error });
         }
     },
 
+    // Retrieve a single topic by its ID
     async getTopic(req, res) {
         try {
-            const topic = await Topic.findById(req.params.id);
+            const topicId = req.params.id;
+            const topic = await Topic.findById(topicId);
             if (!topic) {
-                return res.status(404).json({ message: 'Sujet non trouvé' });
+                return res.status(404).json({ message: 'Topic not found' });
             }
             res.status(200).json(topic);
         } catch (error) {
-            res.status(500).json({ message: 'Erreur lors de la récupération du sujet', error });
+            console.error('Error fetching topic:', error);
+            res.status(500).json({ message: 'Error fetching topic', error });
         }
     },
 
+    // Update a topic and its exercises
     async updateTopic(req, res) {
         try {
-            const topic = await Topic.findByIdAndUpdate(req.params.id, req.body, { new: true });
-            if (!topic) {
-                return res.status(404).json({ message: 'Sujet non trouvé' });
-            }
-            res.status(200).json({ message: 'Sujet mis à jour avec succès', topic: topic });
-        } catch (error) {
-            res.status(500).json({ message: 'Erreur lors de la mise à jour du sujet', error });
-        }
-    },
+            const topicId = req.params.id;
+            const updatedData = req.body; // May include changes to exercises
 
-    async deleteTopic(req, res) {
-        try {
-            // Find the topic to delete
-            const topic = await Topic.findById(req.params.id);
+            const topic = await Topic.findByIdAndUpdate(topicId, updatedData, { new: true });
             if (!topic) {
                 return res.status(404).json({ message: 'Topic not found' });
             }
 
-            // Delete all exercises associated with this topic
-            await Exercise.deleteMany({ topicId: topic._id });
-
-            // Delete the topic
-            await Topic.findByIdAndDelete(req.params.id);
-
-            res.status(200).json({ message: 'Topic and associated exercises deleted successfully' });
+            res.status(200).json({ message: 'Topic updated successfully', topic });
         } catch (error) {
-            console.error('Error deleting topic and exercises:', error);
-            res.status(500).json({ message: 'Error deleting the topic and its exercises', error });
+            console.error('Error updating topic:', error);
+            res.status(500).json({ message: 'Error updating topic', error });
         }
     },
 
-    
+    // Delete a topic and all its embedded exercises
+    async deleteTopic(req, res) {
+        try {
+            const topicId = req.params.id;
+            const topic = await Topic.findByIdAndDelete(topicId);
+            if (!topic) {
+                return res.status(404).json({ message: 'Topic not found' });
+            }
+
+            res.status(200).json({ message: 'Topic deleted successfully', topic });
+        } catch (error) {
+            console.error('Error deleting topic:', error);
+            res.status(500).json({ message: 'Error deleting topic', error });
+        }
+    },
+
+    // Add an exercise to a specific topic
+    async addExercise(req, res) {
+        try {
+            const topicId = req.params.id;
+            const exercise = req.body;
+
+            const topic = await Topic.findById(topicId);
+            if (!topic) {
+                return res.status(404).json({ message: 'Topic not found' });
+            }
+
+            topic.exercises.push(exercise); // Add the exercise to the embedded array
+            await topic.save();
+
+            res.status(201).json({ message: 'Exercise added successfully', topic });
+        } catch (error) {
+            console.error('Error adding exercise:', error);
+            res.status(500).json({ message: 'Error adding exercise', error });
+        }
+    },
+
+    // Delete a specific exercise from a topic
+    async deleteExercise(req, res) {
+        try {
+            const topicId = req.params.topicId;
+            const exerciseId = req.params.exerciseId;
+
+            const topic = await Topic.findById(topicId);
+            if (!topic) {
+                return res.status(404).json({ message: 'Topic not found' });
+            }
+
+            topic.exercises = topic.exercises.filter(e => e._id.toString() !== exerciseId); // Remove the exercise
+            await topic.save();
+
+            res.status(200).json({ message: 'Exercise deleted successfully', topic });
+        } catch (error) {
+            console.error('Error deleting exercise:', error);
+            res.status(500).json({ message: 'Error deleting exercise', error });
+        }
+    },
+
+    // Generate exam endpoint (placeholder, not yet implemented)
     async generateExam(req, res) {
-        return res.status(501);
+        res.status(501).json({ message: 'This feature is not implemented yet' });
     }
 };
 

@@ -1,5 +1,4 @@
 ﻿import Exercise from '../models/exerciseModel.js';
-import Topic from "../models/topicModel.js";
 
 const ExerciseController = {
     async createExercise(req, res) {
@@ -7,39 +6,25 @@ const ExerciseController = {
             const exercise = new Exercise(req.body);
             await exercise.save();
 
-            const topic = await Topic.findByIdAndUpdate(
-                req.body.topicId,
-                { $push: { exercises: exercise._id } },
-                { new: true }
-            );
-
-            if (!topic) {
-                return res.status(404).json({ message: 'Sujet non trouvé' });
-            }
-
             res.status(201).json({
-                message: 'Exercice créé et ajouté au sujet avec succès !',
+                message: 'Exercise successfully created',
                 exercise: exercise,
-                topic: topic
             });
         } catch (error) {
-            console.error('Erreur lors de la création de l\'exercice :', error);
-            res.status(500).json({ message: 'Erreur lors de la création de l\'exercice', error });
+            console.error('Error creating exercise:', error);
+            res.status(500).json({ message: 'Error creating exercise', error });
         }
     },
 
     async getExercises(req, res) {
         try {
             const filters = {};
-            if (req.query.topicId) {
-                filters.topicId = req.query.topicId;
-            }
-
             const exercises = await Exercise.find(filters);
+
             res.status(200).json(exercises);
         } catch (error) {
-            console.error('Erreur lors de la récupération des exercices :', error);
-            res.status(500).json({ message: 'Erreur lors de la récupération des exercices', error });
+            console.error('Error fetching exercises:', error);
+            res.status(500).json({ message: 'Error fetching exercises', error });
         }
     },
 
@@ -47,11 +32,13 @@ const ExerciseController = {
         try {
             const exercise = await Exercise.findById(req.params.id);
             if (!exercise) {
-                return res.status(404).json({ message: 'Exercice non trouvé' });
+                return res.status(404).json({ message: 'Exercise not found' });
             }
+
             res.status(200).json(exercise);
         } catch (error) {
-            res.status(500).json({ message: 'Erreur lors de la récupération de l\'exercice', error });
+            console.error('Error fetching exercise:', error);
+            res.status(500).json({ message: 'Error fetching exercise', error });
         }
     },
 
@@ -59,11 +46,16 @@ const ExerciseController = {
         try {
             const exercise = await Exercise.findByIdAndUpdate(req.params.id, req.body, { new: true });
             if (!exercise) {
-                return res.status(404).json({ message: 'Exercice non trouvé' });
+                return res.status(404).json({ message: 'Exercise not found' });
             }
-            res.status(200).json({ message: 'Exercice mis à jour avec succès', exercise: exercise });
+
+            res.status(200).json({
+                message: 'Exercise successfully updated',
+                exercise: exercise,
+            });
         } catch (error) {
-            res.status(500).json({ message: 'Erreur lors de la mise à jour de l\'exercice', error });
+            console.error('Error updating exercise:', error);
+            res.status(500).json({ message: 'Error updating exercise', error });
         }
     },
 
@@ -71,11 +63,13 @@ const ExerciseController = {
         try {
             const exercise = await Exercise.findByIdAndDelete(req.params.id);
             if (!exercise) {
-                return res.status(404).json({ message: 'Exercice non trouvé' });
+                return res.status(404).json({ message: 'Exercise not found' });
             }
-            res.status(200).json({ message: 'Exercice supprimé avec succès' });
+
+            res.status(200).json({ message: 'Exercise successfully deleted' });
         } catch (error) {
-            res.status(500).json({ message: 'Erreur lors de la suppression de l\'exercice', error });
+            console.error('Error deleting exercise:', error);
+            res.status(500).json({ message: 'Error deleting exercise', error });
         }
     },
 };

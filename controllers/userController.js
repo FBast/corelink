@@ -1,46 +1,47 @@
 ﻿import User from '../models/userModel.js';
 import jwt from 'jsonwebtoken';
-import {sendEmail, sendVerificationCode} from "../utils/emailService.js";
+import { sendEmail, sendVerificationCode } from "../utils/emailService.js";
 import bcrypt from "bcrypt";
 
 const UserController = {
+    // Resend verification code to the user's email
     async resendVerificationCode(req, res) {
         try {
             const { email } = req.body;
 
-            // Trouver l'utilisateur par email
+            // Find the user by email
             const user = await User.findOne({ email });
             if (!user) {
-                return res.status(404).json({ message: 'Utilisateur non trouvé.' });
+                return res.status(404).json({ message: 'User not found.' });
             }
 
-            // Vérifier si l'utilisateur est déjà vérifié
+            // Check if the user is already verified
             if (user.status === "awaiting_information") {
-                return res.status(400).json({ message: 'Ce compte est déjà vérifié.' });
+                return res.status(400).json({ message: 'This account is already verified.' });
             }
 
-            // Envoyer le code de vérification
+            // Send the verification code
             await sendVerificationCode(user);
 
-            res.status(200).json({ message: 'Le code de vérification a été renvoyé avec succès.' });
+            res.status(200).json({ message: 'Verification code resent successfully.' });
         } catch (error) {
-            console.error('Erreur lors du renvoi du code de vérification :', error);
-            res.status(500).json({ message: 'Erreur lors du renvoi du code de vérification' });
+            console.error('Error resending the verification code:', error);
+            res.status(500).json({ message: 'Error resending the verification code' });
         }
     },
 
-    // Création de l'utilisateur avec envoi du code de validation
+    // Create a new user and send a verification code
     async createUser(req, res) {
         try {
             const { email, password } = req.body;
 
-            // Vérifier si l'utilisateur existe déjà
+            // Check if the user already exists
             const existingUser = await User.findOne({ email });
             if (existingUser) {
-                return res.status(400).json({ message: 'Cet email est déjà utilisé.' });
+                return res.status(400).json({ message: 'This email is already in use.' });
             }
 
-            // Hash du mot de passe
+            // Hash the password
             const hashedPassword = await bcrypt.hash(password, 10);
 
             const newUser = new User({
@@ -50,149 +51,149 @@ const UserController = {
             });
             await newUser.save();
 
-            // Appeler la fonction pour envoyer le code de vérification
+            // Send the verification code
             await sendVerificationCode(newUser);
 
-            res.status(201).json({ message: 'Utilisateur créé avec succès ! Vérifiez votre email pour valider votre compte.' });
+            res.status(201).json({ message: 'User created successfully! Check your email to verify your account.' });
         } catch (error) {
-            console.error('Erreur lors de la création de l\'utilisateur :', error);
-            res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur' });
+            console.error('Error creating the user:', error);
+            res.status(500).json({ message: 'Error creating the user' });
         }
     },
 
-    // Vérification de l'utilisateur
+    // Verify the user's account
     async verifyUser(req, res) {
         try {
             const { email, token } = req.body;
-            const user = await User.findOne({ email: email, validationToken: token });
+
+            // Find the user by email and validation token
+            const user = await User.findOne({ email, validationToken: token });
             if (!user) {
-                return res.status(400).json({ message: 'Code de validation invalide ou utilisateur inexistant.' });
+                return res.status(400).json({ message: 'Invalid validation code or user not found.' });
             }
 
+            // Update user status and clear validation token
             user.status = 'awaiting_information';
             user.validationToken = undefined;
 
             const authToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
             res.status(200).json({
-                message: 'Compte vérifié avec succès !',
-                token: authToken
+                message: 'Account successfully verified!',
+                token: authToken,
             });
 
             await user.save();
         } catch (error) {
-            res.status(500).json({ message: 'Erreur lors de la vérification du compte', error });
+            res.status(500).json({ message: 'Error verifying the account', error });
         }
     },
 
-    // Connexion de l'utilisateur
+    // Log in the user and return a JWT token
     async loginUser(req, res) {
         try {
             const { email, password } = req.body;
 
+            // Find the user by email
             const user = await User.findOne({ email });
             if (!user) {
-                return res.status(404).json({ message: "Utilisateur non trouvé" });
+                return res.status(404).json({ message: "User not found" });
             }
 
+            // Check if the password is correct
             const isPasswordCorrect = await bcrypt.compare(password, user.password);
             if (!isPasswordCorrect) {
-                return res.status(401).json({ message: "Mot de passe incorrect" });
+                return res.status(401).json({ message: "Incorrect password" });
             }
 
-            const token = jwt.sign({ 
-                userId: user._id, 
+            // Generate JWT token
+            const token = jwt.sign({
+                userId: user._id,
                 role: user.role,
-                status: user.status
+                status: user.status,
             }, process.env.JWT_SECRET, {
-                expiresIn: '1h'
+                expiresIn: '1h',
             });
 
-            const status = user.status;
-
             res.cookie('token', token, { httpOnly: true, secure: true });
-            res.status(200).json({ message: 'Connexion réussie !', token, status });
+            res.status(200).json({ message: 'Login successful!', token, status: user.status });
         } catch (error) {
-            res.status(500).json({ message: "Erreur lors de la connexion", error });
+            res.status(500).json({ message: "Error during login", error });
         }
     },
 
-    // Request a password reset
+    // Request a password reset and send a validation code to the user's email
     async requestPasswordReset(req, res) {
         try {
-            const {email} = req.body;
-            const validationToken = Math.floor(100000 + Math.random() * 900000).toString();  // Code à 6 chiffres
+            const { email } = req.body;
+            const validationToken = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
 
-            // Trouver l'utilisateur par email et mettre à jour le validationToken
-            const user = await User.findOneAndUpdate({ email: email }, { validationToken: validationToken }, { new: true });
+            // Find the user by email and update the validation token
+            const user = await User.findOneAndUpdate({ email }, { validationToken }, { new: true });
             if (!user) {
-                return res.status(404).json({ message: 'Utilisateur non trouvé' });
+                return res.status(404).json({ message: 'User not found' });
             }
-            
-            const subject = 'Réinitialisation du mot de passe';
-            const text = `Vous avez demandé une réinitialisation de votre mot de passe 
-            \nVotre code de validation est : ${validationToken}
-            \nVeuillez le saisir sur notre site pour réinitialiser votre mot de passe.`;
+
+            // Send email with validation code
+            const subject = 'Password Reset';
+            const text = `You requested a password reset. 
+            Your validation code is: ${validationToken}. 
+            Please enter it on our website to reset your password.`;
             await sendEmail(email, subject, text);
 
-            res.status(201).json({message: 'Réinitialisation en cours ! Vérifiez votre email pour changer votre mot de passe.'});
+            res.status(201).json({ message: 'Password reset initiated. Check your email to proceed.' });
         } catch (error) {
-            console.error('Erreur lors du reset du password :', error);
-            res.status(500).json({message: 'Erreur lors du reset du password', error});
+            console.error('Error during password reset:', error);
+            res.status(500).json({ message: 'Error during password reset', error });
         }
     },
 
+    // Reset the user's password using a validation token
     async resetPassword(req, res) {
         try {
             const { email, validationToken, newPassword } = req.body;
 
-            // Trouver l'utilisateur par email
+            // Find the user by email
             const user = await User.findOne({ email });
             if (!user) {
-                return res.status(404).json({ message: 'Utilisateur non trouvé' });
+                return res.status(404).json({ message: 'User not found' });
             }
 
-            // Vérifier si le validationToken correspond
+            // Check if the validation token matches
             if (user.validationToken !== validationToken) {
-                return res.status(400).json({ message: 'Code de validation invalide' });
+                return res.status(400).json({ message: 'Invalid validation code' });
             }
 
-            // Optionnel : Vérifier si le code a expiré (si vous enregistrez une date d'expiration)
+            // Check if token expired
             if (user.validationTokenExpires && user.validationTokenExpires < Date.now()) {
-                return res.status(400).json({ message: 'Le code de validation a expiré' });
+                return res.status(400).json({ message: 'Validation code expired' });
             }
 
-            // Mettre à jour le mot de passe
+            // Hash the new password and update the user
             user.password = await bcrypt.hash(newPassword, 10);
-
-            // Supprimer le validationToken
             user.validationToken = undefined;
-            user.validationTokenExpires = undefined;
 
             await user.save();
-
-            res.status(200).json({ message: 'Mot de passe réinitialisé avec succès' });
+            res.status(200).json({ message: 'Password reset successfully' });
         } catch (error) {
-            console.error('Erreur lors de la réinitialisation du mot de passe :', error);
-            res.status(500).json({ message: 'Erreur lors de la réinitialisation du mot de passe' });
+            console.error('Error resetting password:', error);
+            res.status(500).json({ message: 'Error resetting password', error });
         }
     },
-    
-    // Récupération du profil utilisateur
+
+    // Get the user's profile based on their token
     async getUserProfile(req, res) {
         try {
             const user = await User.findById(req.user.userId);
-            
             if (!user) {
-                return res.status(404).json({ message: 'Utilisateur non trouvé' });
+                return res.status(404).json({ message: 'User not found' });
             }
-            
             res.status(200).json(user);
         } catch (error) {
-            res.status(500).json({ message: 'Erreur lors de la récupération du profil utilisateur', error });
+            res.status(500).json({ message: 'Error retrieving user profile', error });
         }
     },
 
-    // Mise à jour du profil utilisateur
+    // Update the user's profile
     async updateUserProfile(req, res) {
         try {
             const userId = req.user.userId;
@@ -202,108 +203,96 @@ const UserController = {
             }
 
             const user = await User.findByIdAndUpdate(userId, req.body, { new: true });
-
             if (!user) {
-                return res.status(404).json({ message: 'Utilisateur non trouvé' });
+                return res.status(404).json({ message: 'User not found' });
             }
-
             res.status(200).json(user);
         } catch (error) {
-            res.status(500).json({ message: 'Erreur lors de la mise à jour de vos informations', error });
+            res.status(500).json({ message: 'Error updating user profile', error });
         }
     },
 
-    // Upload d'un rendu d'examen pour l'utilisateur connecté
+    // Upload an exam report for the user
     async uploadExamReport(req, res) {
         try {
             const userId = req.user.userId;
 
             if (!req.file) {
-                return res.status(400).json({ message: 'Aucun fichier PDF fourni.' });
+                return res.status(400).json({ message: 'No PDF file provided.' });
             }
 
             const user = await User.findById(userId);
             if (!user) {
-                return res.status(404).json({ message: 'Utilisateur non trouvé' });
+                return res.status(404).json({ message: 'User not found' });
             }
 
             user.examReport = req.file.buffer;
             await user.save();
-
-            res.status(200).json({ message: 'Fichier PDF uploadé avec succès.' });
+            res.status(200).json({ message: 'PDF file uploaded successfully.' });
         } catch (error) {
-            console.error('Erreur lors de l\'upload du fichier PDF :', error);
-            res.status(500).json({ message: 'Erreur lors de l\'upload du fichier PDF', error });
+            console.error('Error uploading PDF file:', error);
+            res.status(500).json({ message: 'Error uploading PDF file', error });
         }
     },
-    
-    // Récupérer tous les utilisateurs
+
+    // Get all users
     async getUsers(req, res) {
         try {
             const users = await User.find();
             res.status(200).json(users);
         } catch (error) {
-            console.error("Erreur MongoDB:", error);
-            res.status(500).json({ message: 'Erreur lors de la récupération des utilisateurs', error });
+            console.error('Error fetching users:', error);
+            res.status(500).json({ message: 'Error fetching users', error });
         }
     },
 
-    // Récupérer un utilisateur par son ID
+    // Get a single user by ID
     async getUser(req, res) {
         try {
             const user = await User.findById(req.params.id);
             if (!user) {
-                return res.status(404).json({ message: 'Utilisateur non trouvé' });
+                return res.status(404).json({ message: 'User not found' });
             }
             res.status(200).json(user);
         } catch (error) {
-            res.status(500).json({ message: 'Erreur lors de la récupération de l\'utilisateur', error });
+            res.status(500).json({ message: 'Error fetching user', error });
         }
     },
 
-    // Mettre à jour un utilisateur
+    // Update a user by ID
     async updateUser(req, res) {
         try {
             const userId = req.params.id;
             const data = req.body;
 
-            // Récupérer l'utilisateur existant dans la base de données
-            const existingUser = await User.findById(userId);
-            if (!existingUser) {
-                return res.status(404).json({ message: "User not found" });
-            }
-
-            // Si un mot de passe est présent et différent, alors le hacher
-            if (data.password && data.password !== existingUser.password) {
+            // Check for password changes and hash if necessary
+            if (data.password) {
                 data.password = await bcrypt.hash(data.password, 10);
-            } else {
-                // Si le mot de passe n'a pas changé, le retirer pour éviter de le rechiffrer
-                delete data.password;
             }
 
-            // Mettre à jour l'utilisateur avec les nouvelles données
-            const updatedUser = await User.findByIdAndUpdate(userId, data, {
-                new: true,
-            });
-            
+            const updatedUser = await User.findByIdAndUpdate(userId, data, { new: true });
+            if (!updatedUser) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
             res.status(200).json(updatedUser);
         } catch (error) {
-            res.status(500).json({ message: 'Erreur lors de la mise à jour de l\'utilisateur', error });
+            res.status(500).json({ message: 'Error updating user', error });
         }
     },
-    
-    // Supprimer un utilisateur
+
+    // Delete a user by ID
     async deleteUser(req, res) {
         try {
             const user = await User.findByIdAndDelete(req.params.id);
             if (!user) {
-                return res.status(404).json({ message: 'Utilisateur non trouvé' });
+                return res.status(404).json({ message: 'User not found' });
             }
-            res.status(200).json({ message: 'Utilisateur supprimé' });
+            res.status(200).json({ message: 'User deleted successfully' });
         } catch (error) {
-            res.status(500).json({ message: 'Erreur lors de la suppression de l\'utilisateur', error });
+            res.status(500).json({ message: 'Error deleting user', error });
         }
-    }
+    },
 };
 
 export default UserController;

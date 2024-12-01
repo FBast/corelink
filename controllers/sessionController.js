@@ -1,70 +1,68 @@
 ﻿import Session from '../models/sessionModel.js';
 
 const SessionController = {
-    // Créer une nouvelle session
+    // Create a new session
     async createSession(req, res) {
         try {
-            const { name, startDate, endDate } = req.body;
-            const newSession = new Session({ name, startDate, endDate });
+            const newSession = new Session(req.body);
             await newSession.save();
-            res.status(201).json({ message: 'Session créée avec succès', session: newSession });
+            res.status(201).json({ message: 'Session successfully created', session: newSession });
         } catch (error) {
-            console.error('Erreur lors de la création de la session :', error);
-            res.status(500).json({ message: 'Erreur lors de la création de la session', error });
+            console.error('Error creating session:', error);
+            res.status(500).json({ message: 'Error creating session', error });
         }
     },
 
-    // Récupérer toutes les sessions
+    // Retrieve all sessions
     async getSessions(req, res) {
         try {
             const sessions = await Session.find();
             res.status(200).json(sessions);
         } catch (error) {
-            console.error('Erreur lors de la récupération des sessions :', error);
-            res.status(500).json({ message: 'Erreur lors de la récupération des sessions', error });
+            console.error('Error fetching sessions:', error);
+            res.status(500).json({ message: 'Error fetching sessions', error });
         }
     },
 
-    // Récupérer une session par ID
+    // Retrieve a session by ID
     async getSession(req, res) {
         try {
             const session = await Session.findById(req.params.id);
             if (!session) {
-                return res.status(404).json({ message: 'Session non trouvée' });
+                return res.status(404).json({ message: 'Session not found' });
             }
             res.status(200).json(session);
         } catch (error) {
-            console.error('Erreur lors de la récupération de la session :', error);
-            res.status(500).json({ message: 'Erreur lors de la récupération de la session', error });
+            console.error('Error fetching session:', error);
+            res.status(500).json({ message: 'Error fetching session', error });
         }
     },
 
-    // Mettre à jour une session
+    // Update a session
     async updateSession(req, res) {
         try {
-            const { name, startDate, endDate } = req.body;
-            const session = await Session.findByIdAndUpdate(req.params.id, { name, startDate, endDate }, { new: true });
+            const session = await Session.findByIdAndUpdate(req.params.id, req.body, { new: true });
             if (!session) {
-                return res.status(404).json({ message: 'Session non trouvée' });
+                return res.status(404).json({ message: 'Session not found' });
             }
-            res.status(200).json({ message: 'Session mise à jour avec succès', session });
+            res.status(200).json({ message: 'Session successfully updated', session });
         } catch (error) {
-            console.error('Erreur lors de la mise à jour de la session :', error);
-            res.status(500).json({ message: 'Erreur lors de la mise à jour de la session', error });
+            console.error('Error updating session:', error);
+            res.status(500).json({ message: 'Error updating session', error });
         }
     },
 
-    // Supprimer une session
+    // Delete a session
     async deleteSession(req, res) {
         try {
             const session = await Session.findByIdAndDelete(req.params.id);
             if (!session) {
-                return res.status(404).json({ message: 'Session non trouvée' });
+                return res.status(404).json({ message: 'Session not found' });
             }
-            res.status(200).json({ message: 'Session supprimée avec succès' });
+            res.status(200).json({ message: 'Session successfully deleted' });
         } catch (error) {
-            console.error('Erreur lors de la suppression de la session :', error);
-            res.status(500).json({ message: 'Erreur lors de la suppression de la session', error });
+            console.error('Error deleting session:', error);
+            res.status(500).json({ message: 'Error deleting session', error });
         }
     },
 };
