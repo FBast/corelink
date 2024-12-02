@@ -1,12 +1,18 @@
 ﻿import PDFDocument from 'pdfkit';
-import Exercise from "../models/exerciseModel.js";
+import Topic from '../models/topicModel.js';
 
 export const generateExamPDF = async (grade) => {
     return new Promise(async (resolve, reject) => {
         try {
-            // Vérifier si le grade existe
-            if (!grade) {
-                return reject(new Error('Grade not found'));
+            // Vérifier si le grade contient des topics
+            if (!grade || !grade.topics || grade.topics.length === 0) {
+                return reject(new Error('No topics associated with this grade'));
+            }
+
+            // Récupérer les topics à partir de leurs IDs
+            const topics = await Topic.find({ _id: { $in: grade.topics } });
+            if (!topics || topics.length === 0) {
+                return reject(new Error('No valid topics found for this grade'));
             }
 
             // Création du document PDF
@@ -19,11 +25,11 @@ export const generateExamPDF = async (grade) => {
                 resolve(pdfBase64);
             });
 
-            // Génération du contenu pour chaque topic et exercice
-            for (const topic of grade.topics) {
-                const exercises = await Exercise.find({ topicId: topic._id });
-                if (exercises.length > 0) {
-                    const randomExercise = exercises[Math.floor(Math.random() * exercises.length)];
+            // Générer le contenu pour chaque topic et ses exercices
+            for (const topic of topics) {
+                if (topic.exercises && topic.exercises.length > 0) {
+                    const randomExercise =
+                        topic.exercises[Math.floor(Math.random() * topic.exercises.length)];
 
                     // Ajouter le titre du topic
                     doc.fontSize(16)
@@ -48,7 +54,7 @@ export const generateExamPDF = async (grade) => {
                 }
             }
 
-            // Finir le document PDF
+            // Terminer le document PDF
             doc.end();
         } catch (error) {
             console.error('Error generating PDF:', error);

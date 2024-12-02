@@ -15,6 +15,9 @@ import './utils/cronJobs.js';
 import cron from "node-cron";
 import {processCronJobs} from "./utils/cronJobs.js";
 
+// Créer une application Express
+const app = express();
+
 // Routines de traitement automatisé
 cron.schedule('*/10 * * * * *', async () => {
     await processCronJobs();
@@ -22,9 +25,6 @@ cron.schedule('*/10 * * * * *', async () => {
 
 // Charger les variables d'environnement
 dotenv.config();
-
-// Créer une application Express
-const app = express();
 
 // Middlewares
 app.use(express.json());

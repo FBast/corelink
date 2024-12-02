@@ -43,6 +43,9 @@ const userSchema = new mongoose.Schema({
     evaluation: {
         type: String
     },
+    decision: {
+        type: String
+    },
     meetingDate: {
         type: Date
     },
