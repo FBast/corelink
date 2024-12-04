@@ -1,6 +1,6 @@
 ﻿import Grade from '../models/gradeModel.js';
 import Formation from '../models/formationModel.js';
-import {generateExamPDF} from "../utils/pdfGenerator.js";
+import {generateExamPDF} from "../utils/fileHandler.js";
 
 const GradeController = {
     async generateExam(req, res) {

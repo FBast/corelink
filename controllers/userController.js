@@ -2,6 +2,7 @@
 import jwt from 'jsonwebtoken';
 import { sendEmail, sendVerificationCode } from "../utils/emailService.js";
 import bcrypt from "bcrypt";
+import {createZip} from "../utils/fileHandler.js";
 
 const UserController = {
     // Resend verification code to the user's email
@@ -217,8 +218,8 @@ const UserController = {
         try {
             const userId = req.user.userId;
 
-            if (!req.file) {
-                return res.status(400).json({ message: 'No PDF file provided.' });
+            if (!req.files || !req.files.examReport || req.files.examReport.length === 0) {
+                return res.status(400).json({ message: 'No files provided.' });
             }
 
             const user = await User.findById(userId);
@@ -226,12 +227,26 @@ const UserController = {
                 return res.status(404).json({ message: 'User not found' });
             }
 
-            user.examReport = req.file.buffer;
+            const uploadedFiles = req.files.examReport.map((file) => ({
+                originalName: file.originalname,
+                data: file.buffer,
+                mimeType: file.mimetype,
+            }));
+
+            // Create a ZIP archive from the uploaded files
+            const compressedFiles = await createZip(uploadedFiles);
+
+            // Save the compressed file in the database
+            user.examReport = compressedFiles;
             await user.save();
-            res.status(200).json({ message: 'PDF file uploaded successfully.' });
+
+            res.status(200).json({
+                message: 'Files uploaded and compressed successfully.',
+                fileSize: compressedFiles.length,
+            });
         } catch (error) {
-            console.error('Error uploading PDF file:', error);
-            res.status(500).json({ message: 'Error uploading PDF file', error });
+            console.error('Error uploading files:', error);
+            res.status(500).json({ message: 'Error uploading files', error });
         }
     },
 
