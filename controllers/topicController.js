@@ -44,12 +44,37 @@ const TopicController = {
     async updateTopic(req, res) {
         try {
             const topicId = req.params.id;
-            const updatedData = req.body; // May include changes to exercises
+            const { title, exercises } = JSON.parse(req.body.data);
 
-            const topic = await Topic.findByIdAndUpdate(topicId, updatedData, { new: true });
+            const topic = await Topic.findById(topicId);
             if (!topic) {
                 return res.status(404).json({ message: 'Topic not found' });
             }
+            
+            if (title) {
+                topic.title = title;
+            }
+            
+            exercises.forEach((exercise, exerciseIndex) => {
+                const existingExercise = topic.exercises.id(exercise._id);
+
+                if (existingExercise) {
+                    existingExercise.title = exercise.title || existingExercise.title;
+                    existingExercise.text = exercise.text || existingExercise.text;
+
+                    req.files
+                        .filter((file) => file.fieldname.startsWith(`images[${exerciseIndex}]`))
+                        .forEach((file) => {
+                            existingExercise.images.push({
+                                data: file.buffer,
+                                name: file.originalname,
+                                mimeType: file.mimetype
+                            });
+                        });
+                }
+            });
+
+            await topic.save();
 
             res.status(200).json({ message: 'Topic updated successfully', topic });
         } catch (error) {

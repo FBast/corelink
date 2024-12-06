@@ -9,10 +9,22 @@ export const exerciseSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    image: {
-        type: String,
-        required: false
-    }
+    images: [
+        {
+            data: {
+                type: Buffer,
+                required: true,
+            },
+            name: {
+                type: String,
+                required: true,
+            },
+            mimeType: {
+                type: String,
+                required: true,
+            },
+        },
+    ],
 }, { timestamps: true });
 
 const Exercise = mongoose.model('Exercise', exerciseSchema);

@@ -5,3 +5,4 @@ const upload = multer({ storage });
 
 export const singleFileUpload = (fieldName) => upload.single(fieldName);
 export const multipleFilesUpload = (fieldNames) => upload.fields(fieldNames.map(name => ({ name })));
+export const anyFilesUpload = upload.any();
