@@ -3,7 +3,7 @@ import Session from "../models/sessionModel.js";
 import User from "../models/userModel.js";
 import Formation from "../models/formationModel.js";
 import { sendEmail } from "./emailService.js";
-import { generateExamPDF } from "./fileHandler.js";
+import { generateExamPDF } from "./pdfGenerator.js";
 
 // Fonction principale pour gérer les tâches planifiées
 export async function processCronJobs() {

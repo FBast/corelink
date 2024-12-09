@@ -1,5 +1,5 @@
 ﻿import Formation from '../models/formationModel.js';
-import Grade from '../models/gradeModel.js';
+import {generateExamPDF} from "../utils/pdfGenerator.js";
 
 const FormationController = {
     async createFormation(req, res) {
@@ -55,9 +55,6 @@ const FormationController = {
                 return res.status(404).json({ message: 'Formation not found' });
             }
 
-            // Delete all grades associated with this formation
-            await Grade.deleteMany({ formationId: formation._id });
-
             // Delete the formation
             await Formation.findByIdAndDelete(req.params.id);
 
@@ -66,7 +63,32 @@ const FormationController = {
             console.error('Error deleting formation and grades:', error);
             res.status(500).json({ message: 'Error deleting the formation and its grades', error });
         }
-    }
+    },
+
+    async generateExam(req, res) {
+        try {
+            // Récupération de la formation en fonction de l'ID fourni
+            const formation = await Formation.findById(req.params.formationId);
+            if (!formation) {
+                return res.status(404).json({ message: 'Formation not found' });
+            }
+
+            // Récupération du grade en fonction de l'ID fourni
+            const grade = formation.grades.find((grade) => grade.id === req.params.gradeId);
+            if (!grade) {
+                return res.status(404).json({ message: 'Grade not found' });
+            }
+
+            // Appeler la fonction utilitaire pour générer le PDF
+            const pdfBase64 = await generateExamPDF(grade);
+
+            // Envoyer le PDF encodé en base64 dans la réponse JSON
+            res.status(200).json({ pdf: pdfBase64 });
+        } catch (error) {
+            console.error('Error generating exam:', error);
+            res.status(500).json({ message: 'Error generating exam', error });
+        }
+    },
 };
 
 export default FormationController;

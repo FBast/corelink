@@ -54,24 +54,20 @@ const TopicController = {
             if (title) {
                 topic.title = title;
             }
-            
-            exercises.forEach((exercise, exerciseIndex) => {
-                const existingExercise = topic.exercises.id(exercise._id);
 
-                if (existingExercise) {
-                    existingExercise.title = exercise.title || existingExercise.title;
-                    existingExercise.text = exercise.text || existingExercise.text;
-
-                    req.files
+            topic.exercises = exercises.map((exercise, exerciseIndex) => {
+                return {
+                    _id: exercise._id,
+                    title: exercise.title,
+                    text: exercise.text,
+                    images: req.files
                         .filter((file) => file.fieldname.startsWith(`images[${exerciseIndex}]`))
-                        .forEach((file) => {
-                            existingExercise.images.push({
-                                data: file.buffer,
-                                name: file.originalname,
-                                mimeType: file.mimetype
-                            });
-                        });
-                }
+                        .map((file) => ({
+                            data: file.buffer,
+                            name: file.originalname,
+                            mimeType: file.mimetype
+                        }))
+                };
             });
 
             await topic.save();
@@ -139,11 +135,6 @@ const TopicController = {
             console.error('Error deleting exercise:', error);
             res.status(500).json({ message: 'Error deleting exercise', error });
         }
-    },
-
-    // Generate exam endpoint (placeholder, not yet implemented)
-    async generateExam(req, res) {
-        res.status(501).json({ message: 'This feature is not implemented yet' });
     }
 };
 

@@ -2,7 +2,7 @@
 import jwt from 'jsonwebtoken';
 import { sendEmail, sendVerificationCode } from "../utils/emailService.js";
 import bcrypt from "bcrypt";
-import {createZip} from "../utils/fileHandler.js";
+import {createZip} from "../utils/fileUtils.js";
 
 const UserController = {
     // Resend verification code to the user's email

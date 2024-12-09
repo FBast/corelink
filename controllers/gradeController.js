@@ -1,27 +1,7 @@
 ﻿import Grade from '../models/gradeModel.js';
 import Formation from '../models/formationModel.js';
-import {generateExamPDF} from "../utils/fileHandler.js";
 
 const GradeController = {
-    async generateExam(req, res) {
-        try {
-            // Récupération du grade en fonction de l'ID fourni
-            const grade = await Grade.findById(req.params.id).populate('topics');
-            if (!grade) {
-                return res.status(404).json({ message: 'Grade not found' });
-            }
-
-            // Appeler la fonction utilitaire pour générer le PDF
-            const pdfBase64 = await generateExamPDF(grade);
-
-            // Envoyer le PDF encodé en base64 dans la réponse JSON
-            res.status(200).json({ pdf: pdfBase64 });
-        } catch (error) {
-            console.error('Error generating exam:', error);
-            res.status(500).json({ message: 'Error generating exam', error });
-        }
-    },
-    
     async createGrade(req, res) {
         try {
             const formation = await Formation.findById(req.body.formationId);

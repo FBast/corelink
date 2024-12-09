@@ -13,6 +13,5 @@ router.post('/', jwtAuth, adminAuth, GradeController.createGrade);
 router.get('/:id', jwtAuth, adminAuth, GradeController.getGrade);
 router.put('/:id', jwtAuth, adminAuth, GradeController.updateGrade);
 router.delete('/:id', jwtAuth, adminAuth, GradeController.deleteGrade);
-router.get('/:id/generate', jwtAuth, adminAuth, GradeController.generateExam);
 
 export default router;
