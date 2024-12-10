@@ -7,7 +7,7 @@ import {anyFilesUpload} from "../middlewares/fileUpload.js";
 const router = Router();
 
 // Admin routes
-router.post('/', jwtAuth, adminAuth, TopicController.createTopic);
+router.post('/', jwtAuth, adminAuth, anyFilesUpload, TopicController.createTopic);
 router.get('/', jwtAuth, adminAuth, TopicController.getTopics);
 router.get('/:id', jwtAuth, adminAuth, TopicController.getTopic);
 router.put('/:id', jwtAuth, adminAuth, anyFilesUpload, TopicController.updateTopic);

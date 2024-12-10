@@ -4,9 +4,25 @@ const TopicController = {
     // Create a new topic with optional exercises
     async createTopic(req, res) {
         try {
-            const topicData = req.body; // Includes "exercises" if provided
-            const topic = new Topic(topicData);
+            const { title, exercises } = JSON.parse(req.body.data);
+
+            const topic = new Topic({
+                title: title || 'Nouveau Sujet',
+                exercises: exercises.map((exercise, exerciseIndex) => ({
+                    title: exercise.title,
+                    text: exercise.text,
+                    images: req.files
+                        .filter((file) => file.fieldname.startsWith(`images[${exerciseIndex}]`))
+                        .map((file) => ({
+                            data: file.buffer,
+                            name: file.originalname,
+                            mimeType: file.mimetype,
+                        })),
+                })),
+            });
+
             await topic.save();
+
             res.status(201).json({ message: 'Topic created successfully!', topic });
         } catch (error) {
             console.error('Error creating topic:', error);
