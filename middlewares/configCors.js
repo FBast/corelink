@@ -1,7 +1,9 @@
 ﻿import cors from 'cors';
 
 const corsOptions = {
-    origin: '*', // Autorise toutes les origines
+    origin: 'http://localhost:5173', // Origine spécifique autorisée
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Méthodes autorisées
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'], // En-têtes autorisés
     credentials: true // Maintient l'envoi des cookies si nécessaire
 };
 

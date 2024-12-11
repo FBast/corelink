@@ -47,7 +47,7 @@ export const generateExamPDF = async (grade) => {
             doc.moveDown(2);
 
             // Générer le contenu pour chaque topic et ses exercices
-            for (const topic of topics) {
+            topics.forEach((topic, index) => {
                 if (topic.exercises && topic.exercises.length > 0) {
                     const randomExercise = topic.exercises[Math.floor(Math.random() * topic.exercises.length)];
 
@@ -61,6 +61,11 @@ export const generateExamPDF = async (grade) => {
                         .text(`Exercice: ${randomExercise.title}`);
                     doc.moveDown(0.5);
 
+                    // Texte de l'exercice
+                    doc.fontSize(10)
+                        .text(randomExercise.text, { align: 'justify' });
+                    doc.moveDown(1);
+
                     // Images associées à l'exercice
                     if (randomExercise.images && randomExercise.images.length > 0) {
                         for (const image of randomExercise.images) {
@@ -70,30 +75,39 @@ export const generateExamPDF = async (grade) => {
 
                             // Vérifier que le buffer est valide avant d'ajouter l'image
                             if (imageBuffer) {
-                                // Vérifie si assez d'espace reste sur la page, sinon passe à la suivante
-                                if (doc.y + 300 > doc.page.height - doc.page.margins.bottom) {
+                                // Charger l'image pour obtenir ses dimensions réelles
+                                const imgDimensions = doc.openImage(imageBuffer);
+                                const originalWidth = imgDimensions.width;
+                                const originalHeight = imgDimensions.height;
+
+                                // Calculer les dimensions ajustées
+                                const imageFitWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+                                const imageAspectRatio = originalHeight / originalWidth;
+                                const actualHeight = imageFitWidth * imageAspectRatio;
+
+                                // Vérifier si assez d'espace reste sur la page, sinon passer à la suivante
+                                if (doc.y + actualHeight > doc.page.height - doc.page.margins.bottom) {
                                     doc.addPage();
                                 }
 
-                                // Insérer l'image avec un placement ajusté
+                                // Ajouter l'image avec un placement ajusté
                                 doc.image(imageBuffer, {
-                                    fit: [doc.page.width - doc.page.margins.left - doc.page.margins.right, 300],
+                                    fit: [imageFitWidth, actualHeight],
                                     align: 'center',
                                 });
 
-                                doc.moveDown(1); // Ajouter un espace après l'image
+                                // Ajouter un espace après l'image
+                                doc.moveDown(actualHeight / 12 + 2); // Ajuste l'espacement en fonction de la hauteur calculée
                             }
                         }
                     }
 
-                    // Texte de l'exercice
-                    doc.fontSize(10)
-                        .text(randomExercise.text, { align: 'justify' });
-
-                    // Ajouter un espace entre les sections
-                    doc.moveDown(2);
+                    // Ajouter une page sauf pour la dernière itération
+                    if (index < topics.length - 1) {
+                        doc.addPage();
+                    }
                 }
-            }
+            });
 
             // Terminer le document PDF
             doc.end();
