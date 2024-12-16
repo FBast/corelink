@@ -7,7 +7,7 @@ import { generateExamPDF } from "./pdfGenerator.js";
 
 // Fonction principale pour gérer les tâches planifiées
 export async function processCronJobs() {
-    console.log('Début du traitement des tâches planifiées...');
+    console.log('Passe du traitement des tâches planifiées...');
     try {
         await processAwaitingSessionUsers();
         await processAwaitingAppointmentUsers();
@@ -20,7 +20,6 @@ export async function processCronJobs() {
 
 // Traitement des utilisateurs en `awaiting_session`
 async function processAwaitingSessionUsers() {
-    console.log('Traitement des utilisateurs en attente de session...');
     const now = new Date();
 
     try {
@@ -31,13 +30,11 @@ async function processAwaitingSessionUsers() {
         });
 
         if (ongoingSessions.length === 0) {
-            console.log('Aucune session en cours.');
             return;
         }
 
         const users = await User.find({ status: 'awaiting_session' });
         if (users.length === 0) {
-            console.log('Aucun utilisateur en attente de session.');
             return;
         }
 
@@ -71,13 +68,14 @@ async function startExamForUser(user, session) {
         const pdfBuffer = Buffer.from(pdfBase64, 'base64');
 
         // Envoi de l'email avec l'examen
+        const date = new Date().toISOString().slice(0, 10)
         await sendEmail(
             user.email,
             `Votre épreuve pour l'ENSI commence !`,
             `Bonjour ${user.firstName},\n\nVotre épreuve pour la session "${session.name}" commence maintenant (${moment(session.startDate).format('LLL')}).\n\nVeuillez trouver ci-joint l'examen correspondant. Assurez-vous de déposer votre rendu avant la fin de la session (${moment(session.endDate).format('LLL')}).\n\nBonne chance !`,
             [
                 {
-                    filename: 'exam.pdf',
+                    filename: `${user.firstName}_${user.lastName}_Examen_${date}.pdf`,
                     content: pdfBuffer,
                     contentType: 'application/pdf',
                 },
@@ -89,7 +87,7 @@ async function startExamForUser(user, session) {
         user.examSubject = pdfBuffer; // Sauvegarde du PDF
         await user.save();
 
-        console.log(`Examen démarré pour ${user.email}.`);
+        console.log(`Notification envoyée à ${user.email} pour le démarrage de l'examen.`);
     } catch (error) {
         console.error(`Erreur lors du démarrage de l'examen pour ${user.email}:`, error);
     }
@@ -97,7 +95,6 @@ async function startExamForUser(user, session) {
 
 // Traitement des utilisateurs en `awaiting_appointment`
 async function processAwaitingAppointmentUsers() {
-    console.log('Traitement des utilisateurs en attente de rendez-vous...');
     try {
         // Récupérer les utilisateurs en `awaiting_appointment` avec une date de rendez-vous
         const users = await User.find({
@@ -106,7 +103,6 @@ async function processAwaitingAppointmentUsers() {
         });
 
         if (users.length === 0) {
-            console.log('Aucun utilisateur en attente de rendez-vous avec une date définie.');
             return;
         }
 
@@ -145,7 +141,6 @@ async function notifyUserOfAppointment(user) {
 
 // Traitement des utilisateurs en `awaiting_interview`
 async function processAwaitingInterviewUsers() {
-    console.log('Traitement des utilisateurs en awaiting_interview...');
     const now = new Date();
 
     try {
@@ -156,7 +151,6 @@ async function processAwaitingInterviewUsers() {
         });
 
         if (users.length === 0) {
-            console.log('Aucun utilisateur avec entretien passé.');
             return;
         }
 
@@ -174,8 +168,6 @@ async function processAwaitingInterviewUsers() {
 
 // Traitement des utilisateurs en `awaiting_decision`
 export async function processAwaitingDecisionUsers() {
-    console.log("Traitement des utilisateurs en attente de décision...");
-
     try {
         // Récupérer les utilisateurs en attente de décision avec une décision définie
         const users = await User.find({
@@ -184,7 +176,6 @@ export async function processAwaitingDecisionUsers() {
         });
 
         if (users.length === 0) {
-            console.log("Aucun utilisateur en attente de décision avec une décision définie.");
             return;
         }
 
@@ -233,7 +224,7 @@ async function handleDecisionForUser(user) {
         user.status = 'application_processed';
         await user.save();
 
-        console.log(`Décision traitée pour ${user.email}: ${user.decision}`);
+        console.log(`Notification envoyée à ${user.email} pour la décision ${user.decision}.`);
     } catch (error) {
         console.error(`Erreur lors du traitement de la décision pour ${user.email}:`, error);
     }
