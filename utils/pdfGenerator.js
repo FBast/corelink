@@ -25,6 +25,8 @@ export const generateExamPDF = async (grade) => {
                 resolve(pdfBase64);
             });
 
+            doc.moveDown(20);
+
             // Titre Centré
             doc.fontSize(20)
                 .font('Helvetica-Bold')
@@ -44,7 +46,7 @@ export const generateExamPDF = async (grade) => {
                     "Cet examen est composé d'exercices aléatoires extraits des différents sujets associés à ce grade. Chaque exercice inclut du texte et des images pour vous guider dans vos réponses.",
                     { align: 'justify' }
                 );
-            doc.moveDown(2);
+            doc.addPage();
 
             // Générer le contenu pour chaque topic et ses exercices
             topics.forEach((topic, index) => {

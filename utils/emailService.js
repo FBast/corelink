@@ -54,5 +54,6 @@ export const sendVerificationCode = async (user) => {
     Votre code de validation est : ${validationToken}
     Veuillez le saisir sur notre site pour activer votre compte.`;
 
+    console.log(`Envoi de l'email avec le code de vérification.`);
     await sendEmail(user.email, subject, text);
 };
