@@ -1,0 +1,40 @@
+﻿name: Deploy Corelink
+
+on:
+  push:
+    branches:
+      - main # Déclenchement sur la branche main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./backend
+
+      - name: Build backend
+        run: npm run build
+        working-directory: ./backend
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: 10.1.0.119
+          username: ensi
+          password: Ensi2024
+          port: 22
+          script: |
+            cd /var/www/backend
+            rm -rf *
+            scp -r ./backend/dist/* ensi@10.1.0.119:/var/www/backend
+            pm2 restart backend
