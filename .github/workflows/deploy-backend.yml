@@ -24,11 +24,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # Étape 4 : Construire le projet (si applicable, dans ce cas, nous n'avons pas encore de build)
-      - name: Build corelink
-        run: npm run build
-
-      # Étape 5 : Déployer sur le serveur distant
+      # Étape 4 : Déployer sur le serveur distant
       - name: Deploy to server
         uses: appleboy/ssh-action@v0.1.8
         with:
