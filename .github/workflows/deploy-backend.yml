@@ -10,22 +10,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Étape 1 : Récupérer le code depuis le dépôt
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Étape 2 : Configurer Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
+      # Étape 3 : Installer les dépendances
       - name: Install dependencies
         run: npm install
-        working-directory: ./backend
 
-      - name: Build backend
+      # Étape 4 : Construire le projet (si applicable, dans ce cas, nous n'avons pas encore de build)
+      - name: Build corelink
         run: npm run build
-        working-directory: ./backend
 
+      # Étape 5 : Déployer sur le serveur distant
       - name: Deploy to server
         uses: appleboy/ssh-action@v0.1.8
         with:
@@ -34,7 +37,7 @@ jobs:
           password: Ensi2024
           port: 22
           script: |
-            cd /var/www/backend
+            cd /var/www/corelink
             rm -rf *
-            scp -r ./backend/dist/* ensi@10.1.0.119:/var/www/backend
-            pm2 restart backend
+            scp -r ./ * ensi@10.1.0.119:/var/www/corelink
+            pm2 restart corelink
